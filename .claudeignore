@@ -1,0 +1,21 @@
+# Secrets — ne jamais lire ni modifier
+.env
+.env.local
+.env.production
+.env*.local
+
+# Coeur de la plateforme — ne jamais modifier sans discussion explicite
+src/lib/platform/
+
+# Dependencies & build
+node_modules/
+.next/
+out/
+
+# Supabase internal
+supabase/.branches/
+supabase/.temp/
+supabase/.env
+
+# OS
+.DS_Store
