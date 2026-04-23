@@ -142,3 +142,44 @@
 ---
 
 *Les prochaines décisions seront ajoutées ici par Claude Code au fil des sessions.*
+
+---
+
+## Décisions — Session 24/04/2026
+
+---
+
+### TokTik : jeu standalone sans rooms ni Supabase
+**Date :** 24/04/2026
+**Contexte :** TokTik est un jeu à 2 joueurs sur 1 seul téléphone. Le système de rooms suppose un appareil par joueur.
+**Choix :** TokTik est une page Next.js autonome (`/games/toktik`) avec état React local uniquement. Aucune dépendance à Supabase, à l'API rooms, ou au GameModule.
+**Pourquoi :** Un jeu local n'a pas besoin de réseau. Utiliser les rooms aurait créé une complexité inutile et une dépendance Supabase pour un jeu hors-ligne. La plateforme accueille les deux paradigmes : jeux multijoueurs (rooms) et jeux locaux (pages standalone).
+**Alternatives rejetées :**
+- Rooms avec 2 joueurs sur le même appareil — overhead inutile, authentification locale compliquée
+- Adapter GameModule pour le local — sur-ingénierie pour un jeu sans état serveur
+**Conséquences :** TokTik n'est pas dans `src/lib/games/registry.ts`. Les futurs jeux locaux suivront le même pattern. Les jeux nécessitant Supabase restent dans le système de rooms.
+
+---
+
+### TokTik mode simultané : détection de zone par coordonnée Y
+**Date :** 24/04/2026
+**Contexte :** En mode simultané, 2 joueurs tapent le même écran. Il faut savoir quel joueur a tapé.
+**Choix :** Chaque `pointerdown` donne `e.clientY`. Si `clientY < window.innerHeight / 2` → Joueur 0 (haut), sinon → Joueur 1 (bas).
+**Pourquoi :** L'API `PointerEvent` est native au web et précise à quelques pixels. Pas de bibliothèque supplémentaire, fonctionne sur tous les mobiles modernes. La coupure au milieu de l'écran est naturelle avec le split 50/50.
+**Alternatives rejetées :**
+- Deux boutons distincts — moins immersif, prend de la place
+- `TouchEvent` avec `identifier` — plus complexe, `PointerEvent` est le standard moderne
+**Conséquences :** Si un joueur tape accidentellement dans la zone de l'autre, ça compte pour lui. Acceptable — la mécanique de jeu encourage à rester dans sa zone.
+
+---
+
+### TokTik animation jauge : transitions CSS sur position du divider
+**Date :** 24/04/2026
+**Contexte :** L'animation "jauge qui oscille puis remplit la zone du gagnant" devait être fluide et sans bibliothèque d'animation.
+**Choix :** La ligne séparatrice est un `div` absolu dont la position (`top` en %) est contrôlée par un state React. Les zones P0 et P1 ont `height` et `top` qui dépendent de cette valeur. Séquence d'oscillation via `setTimeout`, snap final avec transition CSS 700ms.
+**Pourquoi :** CSS `transition` sur des valeurs numériques simples est plus performant que framer-motion pour ce cas. Le rendu reste sur le thread principal GPU. La séquence de setTimeout est lisible et maintenable.
+**Alternatives rejetées :**
+- framer-motion — overhead de dépendance pour un effet simple
+- Canvas/WebGL — sur-ingénierie totale
+- `requestAnimationFrame` manuel — plus complexe sans gain visible
+**Conséquences :** L'animation dépend de `setTimeout` — sur appareil très lent, le timing peut légèrement dériver. Imperceptible en pratique pour un jeu de soirée.

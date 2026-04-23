@@ -8,9 +8,9 @@
 
 ## 🗓️ Session Courante
 
-**Date :** 23/04/2026
+**Date :** 24/04/2026
 **Durée :** ~1 journée (session intensive)
-**Objectif de la session :** Bootstrapper le projet Next.js et faire fonctionner le système de rooms de bout en bout
+**Objectif de la session :** Déployer sur Vercel + créer le premier jeu TokTik
 
 ---
 
@@ -35,7 +35,16 @@
 - [x] API routes : POST /api/rooms, POST /api/rooms/[code]/join, POST /api/rooms/[code]/start
 - [x] UI : page d'accueil, créer une room, rejoindre par code, lobby temps réel
 - [x] Flux complet testé : créer → partager code → rejoindre → voir les joueurs en temps réel
-- [ ] Premier déploiement Vercel
+- [x] **Repo GitHub** : https://github.com/BalooInTheJungle/jeu-x-
+- [x] **Déploiement Vercel** : connecté au repo GitHub, 4 variables d'env configurées
+- [x] **shadcn/ui** : Button et Badge installés (`src/components/ui/`)
+- [x] **Viewport mobile** ajouté dans `src/app/layout.tsx`
+- [x] **Jeu TokTik** — jeu local 2 joueurs, 1 téléphone, duel de précision temporelle
+  - [x] `src/lib/games/toktik/logic.ts` — logique pure (types, scoring, formatage)
+  - [x] `src/app/games/toktik/page.tsx` — jeu complet avec machine d'états
+  - [x] Mode séquentiel : tour par tour, pass-the-phone
+  - [x] Mode simultané : split screen, zones tactiles, animation jauge oscillante
+  - [x] Setup : choix couleur par joueur, rounds, difficulté, mode
 - [ ] Image Quiz jouable en local
 
 ---
@@ -48,23 +57,28 @@
 
 ## 🚧 Blocages Connus
 
-*(Aucun — tout fonctionne en local)*
+*(Aucun — tout fonctionne en local et sur Vercel)*
 
 ---
 
 ## 📋 À Faire — Session Suivante
 
-**Priorité 1 — Déploiement Vercel :**
-- [ ] Connecter le repo GitHub à Vercel
-- [ ] Configurer les variables d'environnement dans Vercel (NEXT_PUBLIC_SUPABASE_URL, NEXT_PUBLIC_SUPABASE_ANON_KEY, SUPABASE_SERVICE_ROLE_KEY)
-- [ ] Premier déploiement et test en production
-
-**Priorité 2 — Image Quiz (premier jeu) :**
+**Priorité 1 — Image Quiz (premier jeu multi-joueurs) :**
 - [ ] Lire `agents/ORCHESTRATOR.md` et suivre le flux
-- [ ] Créer `docs/games/IMAGE_QUIZ.md` (spec du jeu)
-- [ ] Créer `src/lib/games/image-quiz/` (module GameModule)
-- [ ] Créer les tables Supabase `game_image_quiz_*`
+- [ ] Créer `docs/games/IMAGE_QUIZ.md` (spec validée par le dev)
+- [ ] Créer tables Supabase `game_image_quiz_*`
+- [ ] Créer `src/lib/games/image-quiz/` (module GameModule complet)
 - [ ] UI du jeu (affichage image, input réponse, timer, scoreboard)
+- [ ] Enregistrer dans `src/lib/games/registry.ts`
+
+**Priorité 2 — Lier TokTik à la page d'accueil :**
+- [ ] Ajouter une carte "TokTik" sur la page `/` avec lien vers `/games/toktik`
+- [ ] Ajouter une section "Jeux disponibles" sur l'accueil
+
+**Priorité 3 — Agent Anthropic (après Image Quiz) :**
+- [ ] Définir le scope exact de l'agent (génération de questions texte uniquement)
+- [ ] Créer `src/app/api/agents/generate-questions/route.ts`
+- [ ] Interface admin pour lancer et monitorer les runs
 
 ---
 
@@ -76,6 +90,7 @@ Node.js     : 20.x
 Next.js     : 14.x
 TypeScript  : 5.x
 Supabase JS : 2.x
+shadcn/ui   : installé (Button, Badge)
 ```
 
 ### Commandes Utiles
@@ -90,9 +105,11 @@ bash context/memory.sh  # Injecte le contexte git dans le terminal
 ### URLs Importantes
 ```
 Local         : http://localhost:3000
-Production    : [à remplir après premier déploiement]
+TokTik local  : http://localhost:3000/games/toktik
+Production    : [URL Vercel — à récupérer dans le dashboard Vercel]
 Supabase      : dashboard.supabase.com → ton projet
-Vercel        : [à remplir après connexion]
+GitHub        : https://github.com/BalooInTheJungle/jeu-x-
+Vercel        : vercel.com → projet jeu-x
 ```
 
 ### Structure des fichiers importants
@@ -100,30 +117,41 @@ Vercel        : [à remplir après connexion]
 src/
 ├── app/
 │   ├── page.tsx                        ← Accueil (Créer / Rejoindre)
+│   ├── games/
+│   │   └── toktik/
+│   │       └── page.tsx                ← Jeu TokTik (standalone, pas de rooms)
 │   ├── rooms/
-│   │   ├── new/page.tsx                ← Formulaire créer une room
-│   │   ├── join/page.tsx               ← Formulaire rejoindre par code
+│   │   ├── new/page.tsx
+│   │   ├── join/page.tsx
 │   │   └── [code]/
-│   │       ├── page.tsx                ← Server component (force-dynamic)
-│   │       └── RoomLobbyClient.tsx     ← Lit localStorage, gère race condition
+│   │       ├── page.tsx
+│   │       └── RoomLobbyClient.tsx
 │   └── api/
-│       ├── rooms/route.ts              ← POST créer une room
+│       ├── rooms/route.ts
 │       └── rooms/[code]/
-│           ├── join/route.ts           ← POST rejoindre
-│           └── start/route.ts          ← POST démarrer la partie
+│           ├── join/route.ts
+│           ├── start/route.ts
+│           ├── action/route.ts
+│           └── next-round/route.ts
 ├── components/
-│   └── platform/
-│       └── RoomLobby.tsx               ← Lobby temps réel (Realtime Supabase)
+│   ├── platform/
+│   │   └── RoomLobby.tsx
+│   └── ui/
+│       ├── button.tsx                  ← shadcn Button
+│       └── badge.tsx                   ← shadcn Badge
 └── lib/
     ├── platform/
     │   ├── types.ts                    ← GameModule + types DB
-    │   ├── room.ts                     ← Logique rooms
-    │   └── game-engine.ts              ← Moteur de jeu
-    ├── supabase/
-    │   ├── client.ts                   ← Client anon (front)
-    │   └── admin.ts                    ← Client service_role (back)
-    └── games/
-        └── registry.ts                 ← Map des jeux enregistrés
+    │   ├── room.ts
+    │   └── game-engine.ts
+    ├── games/
+    │   ├── registry.ts                 ← Map des jeux (vide pour l'instant)
+    │   └── toktik/
+    │       └── logic.ts                ← Logique pure TokTik
+    └── supabase/
+        ├── client.ts
+        ├── admin.ts
+        └── server.ts
 ```
 
 ---
@@ -135,4 +163,12 @@ src/
 - Le plus vicieux : Next.js 14 cache les `fetch` Supabase → résolu avec `export const dynamic = 'force-dynamic'`
 - Race condition sur le join → résolu avec `router.refresh()` + `useRef` guard
 - Realtime fonctionne : l'host voit les joueurs arriver en temps réel
-- Tout fonctionne en local, prochaine étape : Vercel + Image Quiz
+
+### 24/04/2026 — Session Vercel + TokTik
+- GitHub push réussi sur `BalooInTheJungle/jeu-x-`
+- Vercel déployé proprement (4 variables d'env : SUPABASE_URL, SUPABASE_ANON_KEY, SUPABASE_SERVICE_ROLE_KEY, ANTHROPIC_API_KEY)
+- TokTik créé en standalone (pas de rooms) — décision validée : jeu local = pas de Supabase
+- Jauge oscillante en mode simultané : CSS transitions sur position du divider + sequence de setTimeout
+- shadcn/ui installé (Button, Badge)
+- Viewport mobile ajouté au layout global
+- Bug CSS : `bg-[#0f0f0f]` (valeur arbitraire Tailwind) ne s'appliquait pas → remplacé par `bg-zinc-950`

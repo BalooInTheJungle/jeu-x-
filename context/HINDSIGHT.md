@@ -56,6 +56,44 @@ Création de toute la documentation de référence avant d'écrire une ligne de 
 
 ---
 
+### Session du 24/04/2026
+
+**Objectif de la session :** Déploiement Vercel + créer le premier jeu TokTik
+
+**Ce qui a été livré :**
+- Repo GitHub configuré (`BalooInTheJungle/jeu-x-`)
+- Vercel déployé avec les 4 variables d'env
+- Jeu TokTik complet : logique pure + UI full-screen + 2 modes de jeu
+- shadcn/ui installé (Button, Badge)
+- Viewport mobile ajouté au layout global
+
+**Ce qui a bien marché :**
+- Poser des questions structurées avant de coder → le dev a co-designé le jeu en direct
+- Proposer un plan en ASCII avant de coder l'animation → validation immédiate
+- Livrer tout TokTik en un seul bloc → apprécié, pas de va-et-vient
+- Séparer clairement "ce qui est un mur" (images autonomes) vs "ce qui est faisable" → confiance
+
+**Ce qui a bloqué ou pris plus de temps que prévu :**
+- UI setup TokTik non stylée au premier rendu : `bg-[#0f0f0f]` (valeur arbitraire Tailwind) ne s'appliquait pas → remplacé par `bg-zinc-950`. **Règle : toujours utiliser des tokens Tailwind standard, jamais de valeurs `bg-[#...]` arbitraires.**
+- Le dev a demandé un redesign shadcn après la première version → 1 itération perdue. **Règle : utiliser shadcn dès la première version pour les écrans setup.**
+
+**Ajustements à faire pour la prochaine session :**
+- Image Quiz suit le flux `agents/ORCHESTRATOR.md` — lire ce fichier en premier
+- Ne pas oublier de lire `docs/GAME_CONTRACT.md` avant de coder un jeu
+- TokTik n'est PAS dans le registry des jeux (`src/lib/games/registry.ts`) — c'est intentionnel, c'est un jeu local
+
+**Erreurs commises à ne pas répéter :**
+- Utiliser `bg-[#couleur]` arbitraire en Tailwind — toujours préférer les tokens (`zinc-950`, `zinc-900`, etc.)
+- Livrer un écran setup sans shadcn quand shadcn est dans le projet
+
+**Ce que ce dev a semblé apprécier particulièrement :**
+- Le diagnostic honnête "voilà ce qui est un mur et pourquoi" avant de proposer une alternative
+- Le schéma ASCII de la jauge avant de la coder → il a validé le concept immédiatement
+- Poser exactement 4 questions, pas plus, avant de coder
+- La réponse directe "oui c'est possible, voici comment" pour la détection de zone tactile
+
+---
+
 <!-- TEMPLATE pour Claude Code — copier-coller à chaque fin de session
 
 ### Session du [DATE]
@@ -99,6 +137,9 @@ Création de toute la documentation de référence avant d'écrire une ligne de 
 | 3 | Rappeler de commiter en fin de session | Habitude gros commits |
 | 4 | Expliquer les termes techniques en une phrase simple quand utilisés | Profil initial |
 | 5 | Valider la spec avec le dev avant d'écrire le code d'un nouveau jeu | Préférence GAME_CREATOR |
+| 6 | Toujours utiliser des tokens Tailwind standard (`zinc-950`) — jamais `bg-[#...]` arbitraire | Bug CSS session 24/04 |
+| 7 | Utiliser shadcn/ui dès la première version pour les écrans de config/setup | Redesign demandé session 24/04 |
+| 8 | Proposer un schéma ASCII du comportement visuel avant de coder une animation | Validé session 24/04 |
 
 ### Règles en observation
 *(Patterns vus 1 fois — pas encore confirmés)*
