@@ -4,32 +4,50 @@
 
 ---
 
-## V1 — La Plateforme + 2 Jeux
+## V1 — La Plateforme + 2 Jeux Multijoueurs
 
 **Objectif :** Valider que la plateforme fonctionne de bout en bout avec de vrais joueurs.
 
-### Plateforme
-- [ ] Initialisation du projet Next.js 14 + TypeScript + Tailwind + shadcn/ui
-- [ ] Connexion Supabase — tables plateforme + migrations
-- [ ] Système de rooms (création, code 4 lettres, rejoindre)
-- [ ] Présence des joueurs en temps réel (Supabase Realtime)
-- [ ] Cycle de vie complet : waiting → playing → round_end → finished
-- [ ] Interface `GameModule` implémentée dans `src/lib/platform/`
-- [ ] Registre des jeux (`registry.ts`)
-- [ ] Premier déploiement Vercel fonctionnel
+### Plateforme ✅ COMPLÈTE
+- [x] Initialisation du projet Next.js 14 + TypeScript + Tailwind + shadcn/ui
+- [x] Connexion Supabase — tables plateforme + migrations
+- [x] Système de rooms (création, code 4 lettres, rejoindre)
+- [x] Présence des joueurs en temps réel (Supabase Realtime)
+- [x] Interface `GameModule` implémentée dans `src/lib/platform/`
+- [x] Registre des jeux (`registry.ts`)
+- [x] Premier déploiement Vercel fonctionnel
+- [x] Page d'accueil avec cartes des jeux disponibles
+- [x] `rooms/new?game=` — création de room avec jeu présélectionné
+- [x] `POST /api/rooms/[code]/reset` — relance une manche dans la même room
 
-### Jeu 1 — Image Quiz
+### Jeu 1 — TokTik ✅ COMPLET
+Jeu local, pas de rooms. 2 joueurs, 1 téléphone, duel de précision temporelle.
+- [x] Logique pure (`src/lib/games/toktik/logic.ts`)
+- [x] UI complète avec machine d'états
+- [x] Mode séquentiel + mode simultané (split screen)
+- [x] Setup paramétrable (couleur, rounds, difficulté, mode)
+
+### Jeu 2 — Undercover ✅ COMPLET
+Jeu multijoueurs (3-10 joueurs) de déduction sociale.
+- [x] Spec validée (`docs/games/UNDERCOVER.md`)
+- [x] Migration SQL + seed 29 paires de mots (général, One Piece, Brawl Stars)
+- [x] Génération de mots via Claude Haiku + fallback DB
+- [x] Rôles : civil, undercover, mr_white (assignés aléatoirement)
+- [x] Phases : description → vote → (guess) → finished
+- [x] Sécurité : rôles privés server-side, jamais exposés au client
+- [x] UI complète avec avatars colorés, animations, écran de fin
+- [x] Config host : thème, Mr. White, mode spectateur, mots personnalisés
+- [x] Relance de manche dans la même room
+- [x] Testé en conditions réelles à 3 joueurs ✅
+
+### Jeu 3 — Image Quiz 🔲 PROCHAIN
+Premier jeu avec questions multijoueurs synchronisées.
 - [ ] Spec validée (`docs/games/IMAGE_QUIZ.md`)
 - [ ] Migration SQL + seed de questions (min. 50 par thème)
-- [ ] Module `GameModule` complet
-- [ ] UI : ConfigForm, GameView, RoundDisplay
+- [ ] Module `GameModule` complet (utilise le game-engine générique)
+- [ ] UI : ConfigForm, GameView, RoundDisplay, écran de résultats
 - [ ] Testé en local à plusieurs joueurs
 - [ ] Déployé et jouable en production
-
-### Jeu 2 — À définir
-- [ ] Spec à valider
-- [ ] Implémentation complète
-- [ ] Valide que le système `GameModule` est réellement pluggable
 
 ---
 
@@ -42,6 +60,7 @@
 - Dashboard admin — valider le contenu généré avant publication
 - Statistiques des parties (questions les plus ratées, temps moyen de réponse...)
 - Amélioration de l'expérience host (aperçu avant lancement, kick d'un joueur)
+- Nouveaux thèmes pour Undercover (générés par IA)
 
 ---
 

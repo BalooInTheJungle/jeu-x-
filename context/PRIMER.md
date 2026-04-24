@@ -9,8 +9,8 @@
 ## 🗓️ Session Courante
 
 **Date :** 24/04/2026
-**Durée :** ~1 journée (session intensive)
-**Objectif de la session :** Déployer sur Vercel + créer le premier jeu TokTik
+**Durée :** ~2 jours (sessions intensives)
+**Objectif de la session :** Jeu Undercover complet + fix bugs + relance de manche
 
 ---
 
@@ -31,7 +31,7 @@
 - [x] `src/lib/platform/room.ts` — createRoom, joinRoom, getRoom
 - [x] `src/lib/platform/game-engine.ts` — startGame, submitAction, advanceToNextRound
 - [x] `src/lib/supabase/admin.ts` — client service_role (bypass RLS)
-- [x] `src/lib/games/registry.ts` — registre des jeux (vide, prêt à accueillir les jeux)
+- [x] `src/lib/games/registry.ts` — registre des jeux
 - [x] API routes : POST /api/rooms, POST /api/rooms/[code]/join, POST /api/rooms/[code]/start
 - [x] UI : page d'accueil, créer une room, rejoindre par code, lobby temps réel
 - [x] Flux complet testé : créer → partager code → rejoindre → voir les joueurs en temps réel
@@ -45,7 +45,7 @@
   - [x] Mode séquentiel : tour par tour, pass-the-phone
   - [x] Mode simultané : split screen, zones tactiles, animation jauge oscillante
   - [x] Setup : choix couleur par joueur, rounds, difficulté, mode
-- [x] **Jeu Undercover** — jeu multijoueurs social deduction, système de rooms
+- [x] **Jeu Undercover** — jeu multijoueurs social deduction, système de rooms ✅ COMPLET
   - [x] `src/types/games/undercover.ts` — types TypeScript complets
   - [x] `src/lib/games/undercover/words.ts` — génération LLM (claude-haiku) + fallback DB
   - [x] `src/lib/games/undercover/index.ts` — GameModule enregistré dans le registry
@@ -53,10 +53,14 @@
   - [x] `src/app/api/rooms/[code]/my-role/route.ts` — rôle privé server-side
   - [x] `src/app/api/rooms/[code]/undercover/start/route.ts` — génère mots + assigne rôles
   - [x] `src/app/api/rooms/[code]/undercover/action/route.ts` — description/vote/guess
+  - [x] `src/app/api/rooms/[code]/reset/route.ts` — relance une manche dans la même room
   - [x] `src/components/games/undercover/GameView.tsx` — UI complète (4 phases + écran final)
-  - [x] `RoomLobby.tsx` modifié — config Undercover + rendu GameView quand playing
+  - [x] `RoomLobby.tsx` — config Undercover + rendu GameView pour `playing` et `finished`
   - [x] `@anthropic-ai/sdk` installé
   - [x] `docs/games/UNDERCOVER.md` — spec complète
+  - [x] Testé en conditions réelles : 3 joueurs, cycle complet, relance de manche ✅
+- [x] **Page d'accueil** — cartes TokTik + Undercover + rejoindre par code
+- [x] **Rooms/new** — paramètre `?game=` dans l'URL pour présélectionner le jeu
 
 ---
 
@@ -68,31 +72,28 @@
 
 ## 🚧 Blocages Connus
 
-*(Aucun — tout fonctionne en local et sur Vercel)*
+**Migration Supabase** — la table `game_undercover_word_pairs` doit être créée manuellement :
+- Ouvrir le dashboard Supabase → SQL Editor
+- Coller et exécuter `supabase/migrations/20260424000000_undercover.sql`
+- Sans ça, la génération de mots tombe en erreur DB (le LLM prend le relais, mais c'est le fallback)
 
 ---
 
 ## 📋 À Faire — Session Suivante
 
-**Priorité 1 — Appliquer la migration Supabase Undercover :**
-- [ ] Ouvrir le dashboard Supabase → SQL Editor
-- [ ] Coller et exécuter `supabase/migrations/20260424000000_undercover.sql`
-- [ ] Vérifier que la table `game_undercover_word_pairs` contient les 29 paires
+**Priorité 1 — Sécurité (urgent) :**
+- [ ] **Régénérer la `SUPABASE_SERVICE_ROLE_KEY`** dans le dashboard Supabase (Settings → API → Regenerate)
+- [ ] **Régénérer l'`ANTHROPIC_API_KEY`** dans console.anthropic.com
+- [ ] Mettre à jour les nouvelles clés dans `.env.local` et dans Vercel (Settings → Environment Variables)
+- Raison : `.env.example` contenait les vraies clés — remplacées avant le push mais présentes dans l'historique git
 
-**Priorité 2 — Tester Undercover en local :**
-- [ ] Créer une room avec `game_type: 'undercover'`
-- [ ] Tester avec 3+ joueurs (différents onglets)
-- [ ] Vérifier que les rôles sont bien privés (my-role route)
-- [ ] Vérifier les phases : description → vote → élimination → fin
-
-**Priorité 3 — Lier les jeux à la page d'accueil :**
-- [ ] Ajouter une carte "TokTik" sur `/` avec lien vers `/games/toktik`
-- [ ] Ajouter une carte "Undercover" sur `/` avec lien vers création de room
-- [ ] Section "Jeux disponibles" sur l'accueil
-
-**Priorité 4 — Image Quiz (second jeu multi-joueurs) :**
-- [ ] Lire `agents/ORCHESTRATOR.md` et suivre le flux
-- [ ] Créer `docs/games/IMAGE_QUIZ.md` (spec validée par le dev)
+**Priorité 2 — Image Quiz (premier vrai quiz multi-joueurs) :**
+- [ ] Lire `agents/ORCHESTRATOR.md` et suivre le flux de création de jeu
+- [ ] Créer `docs/games/IMAGE_QUIZ.md` (spec validée par le dev avant de coder)
+- [ ] Migration SQL : table `game_image_quiz_questions` + seed de questions
+- [ ] Module `GameModule` + routes dédiées
+- [ ] UI : ConfigForm dans RoomLobby, GameView, écran de résultats
+- [ ] Tester avec plusieurs joueurs
 
 ---
 
@@ -100,11 +101,12 @@
 
 ### Versions
 ```
-Node.js     : 20.x
-Next.js     : 14.x
-TypeScript  : 5.x
-Supabase JS : 2.x
-shadcn/ui   : installé (Button, Badge)
+Node.js              : 20.x
+Next.js              : 14.x
+TypeScript           : 5.x
+Supabase JS          : 2.x
+@anthropic-ai/sdk    : installé (claude-haiku-4-5-20251001 pour génération de mots)
+shadcn/ui            : installé (Button, Badge)
 ```
 
 ### Commandes Utiles
@@ -130,42 +132,58 @@ Vercel        : vercel.com → projet jeu-x
 ```
 src/
 ├── app/
-│   ├── page.tsx                        ← Accueil (Créer / Rejoindre)
+│   ├── page.tsx                          ← Accueil (cartes TokTik, Undercover, Rejoindre)
 │   ├── games/
-│   │   └── toktik/
-│   │       └── page.tsx                ← Jeu TokTik (standalone, pas de rooms)
+│   │   └── toktik/page.tsx               ← Jeu TokTik (standalone, pas de rooms)
 │   ├── rooms/
-│   │   ├── new/page.tsx
+│   │   ├── new/page.tsx                  ← Créer une room (?game= présélectionne le jeu)
 │   │   ├── join/page.tsx
 │   │   └── [code]/
 │   │       ├── page.tsx
 │   │       └── RoomLobbyClient.tsx
 │   └── api/
-│       ├── rooms/route.ts
 │       └── rooms/[code]/
+│           ├── route.ts
 │           ├── join/route.ts
 │           ├── start/route.ts
 │           ├── action/route.ts
-│           └── next-round/route.ts
+│           ├── next-round/route.ts
+│           ├── my-role/route.ts          ← Rôle privé (Undercover)
+│           ├── reset/route.ts            ← Relance une manche dans la même room
+│           └── undercover/
+│               ├── start/route.ts        ← Démarre Undercover (assigne rôles + mots)
+│               └── action/route.ts       ← description / vote / guess
 ├── components/
 │   ├── platform/
-│   │   └── RoomLobby.tsx
+│   │   └── RoomLobby.tsx                 ← Lobby + dispatch vers GameView selon game_type
+│   ├── games/
+│   │   └── undercover/
+│   │       └── GameView.tsx              ← UI complète Undercover (4 phases)
 │   └── ui/
-│       ├── button.tsx                  ← shadcn Button
-│       └── badge.tsx                   ← shadcn Badge
-└── lib/
-    ├── platform/
-    │   ├── types.ts                    ← GameModule + types DB
-    │   ├── room.ts
-    │   └── game-engine.ts
-    ├── games/
-    │   ├── registry.ts                 ← Map des jeux (vide pour l'instant)
-    │   └── toktik/
-    │       └── logic.ts                ← Logique pure TokTik
-    └── supabase/
-        ├── client.ts
-        ├── admin.ts
-        └── server.ts
+│       ├── button.tsx
+│       └── badge.tsx
+├── lib/
+│   ├── platform/                         ← NE JAMAIS MODIFIER SANS DISCUSSION
+│   │   ├── types.ts
+│   │   ├── room.ts
+│   │   └── game-engine.ts
+│   ├── games/
+│   │   ├── registry.ts                   ← Map game_id → GameModule
+│   │   ├── toktik/logic.ts
+│   │   └── undercover/
+│   │       ├── index.ts                  ← GameModule (processAction délégue aux routes)
+│   │       └── words.ts                  ← Génération LLM + fallback DB
+│   └── supabase/
+│       ├── client.ts
+│       ├── admin.ts
+│       └── server.ts
+├── types/
+│   └── games/
+│       └── undercover.ts                 ← UndercoverState, UndercoverRole, etc.
+└── supabase/
+    └── migrations/
+        ├── 20260423_platform_initial.sql ← Tables plateforme (appliquée ✅)
+        └── 20260424000000_undercover.sql  ← game_undercover_word_pairs (À APPLIQUER ⚠️)
 ```
 
 ---
@@ -178,20 +196,13 @@ src/
 - Race condition sur le join → résolu avec `router.refresh()` + `useRef` guard
 - Realtime fonctionne : l'host voit les joueurs arriver en temps réel
 
-### 24/04/2026 (suite) — Session Undercover
-- GitHub push réussi sur `BalooInTheJungle/jeu-x-`
-- Vercel déployé proprement (4 variables d'env : SUPABASE_URL, SUPABASE_ANON_KEY, SUPABASE_SERVICE_ROLE_KEY, ANTHROPIC_API_KEY)
+### 24/04/2026 — Session Undercover complète
 - TokTik créé en standalone (pas de rooms) — décision validée : jeu local = pas de Supabase
-- Jauge oscillante en mode simultané : CSS transitions sur position du divider + sequence de setTimeout
-- shadcn/ui installé (Button, Badge)
-- Viewport mobile ajouté au layout global
-- Bug CSS : `bg-[#0f0f0f]` (valeur arbitraire Tailwind) ne s'appliquait pas → remplacé par `bg-zinc-950`
-
-### 24/04/2026 (suite) — Session Undercover (continuation)
-- `@anthropic-ai/sdk` installé
-- Undercover complet : 11 fichiers créés/modifiés, 0 erreur TypeScript
-- Architecture : bypass du game-engine générique — logique dans routes dédiées
-- Sécurité rôles privés : `rooms.state.privateRoles` jamais lu client-side, route `/my-role` server-side
-- Migration SQL avec 29 paires de mots (général, One Piece, Brawl Stars) — À APPLIQUER dans Supabase
-- Mr. White activé seulement si ≥ 4 joueurs actifs (sinon trop facile à identifier)
-- `RoomLobby.tsx` : config Undercover intégrée (thème, Mr. White, spectateur, mots perso)
+- Undercover complet : 13 fichiers créés, 0 erreur TypeScript, testé à 3 joueurs
+- Architecture : bypass du game-engine générique — logique dans routes dédiées (voir DECISIONS.md)
+- Sécurité rôles : `privateRoles` jamais lu client-side, route `/my-role` server-side uniquement
+- Fix clé : `room.code` via Realtime CHAR(4) peut retourner `'C'` → contourné en passant `initialRoom.code` (SSR) comme prop
+- Fix FK : `room_players(*)` → ambiguïté PGRST201 → utiliser `room_players!room_players_room_id_fkey(*)`
+- `RoomLobby` status `'finished'` affiche toujours le GameView (sinon le lobby réapparaissait)
+- `config` et `state` ont des contraintes NOT NULL en DB → reset avec `{}` et non `null`
+- `.env.example` contenait de vraies clés → remplacées avant le push → **régénérer les clés** (Priorité 1)
