@@ -1,10 +1,20 @@
 'use client'
 
 import { useState } from 'react'
-import { useRouter } from 'next/navigation'
+import { useRouter, useSearchParams } from 'next/navigation'
+import { Suspense } from 'react'
 
-export default function NewRoomPage() {
+const GAME_LABELS: Record<string, string> = {
+  undercover: 'Undercover',
+  image_quiz: 'Image Quiz',
+}
+
+function NewRoomForm() {
   const router = useRouter()
+  const searchParams = useSearchParams()
+  const gameType = searchParams.get('game') ?? 'undercover'
+  const gameLabel = GAME_LABELS[gameType] ?? gameType
+
   const [username, setUsername] = useState('')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
@@ -20,7 +30,7 @@ export default function NewRoomPage() {
       const res = await fetch('/api/rooms', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ gameType: 'image_quiz', hostUsername: username.trim() }),
+        body: JSON.stringify({ gameType, hostUsername: username.trim() }),
       })
 
       const data = await res.json() as { room?: { code: string }; player?: { id: string }; error?: string }
@@ -30,7 +40,6 @@ export default function NewRoomPage() {
         return
       }
 
-      // Stocke l'ID joueur pour savoir qui "je" suis dans la room
       localStorage.setItem(`player_${data.room.code}`, data.player.id)
       router.push(`/rooms/${data.room.code}`)
     } catch {
@@ -41,8 +50,9 @@ export default function NewRoomPage() {
   }
 
   return (
-    <main className="flex min-h-screen flex-col items-center justify-center bg-slate-950 p-8 text-white">
+    <main className="flex min-h-screen flex-col items-center justify-center bg-zinc-950 p-8 text-white">
       <div className="w-full max-w-sm">
+        <p className="text-sm text-slate-500 uppercase tracking-widest mb-1">{gameLabel}</p>
         <h1 className="text-3xl font-bold mb-2">Nouvelle partie</h1>
         <p className="text-slate-400 mb-8">Tu seras le host — tu partages le code avec tes amis.</p>
 
@@ -55,7 +65,8 @@ export default function NewRoomPage() {
               onChange={(e) => setUsername(e.target.value)}
               placeholder="Ex : Mario"
               maxLength={20}
-              className="w-full rounded-lg bg-slate-800 border border-slate-700 px-4 py-3 text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+              autoFocus
+              className="w-full rounded-xl bg-zinc-800 border border-zinc-700 px-4 py-3 text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-indigo-500"
             />
           </div>
 
@@ -64,12 +75,20 @@ export default function NewRoomPage() {
           <button
             type="submit"
             disabled={loading || !username.trim()}
-            className="rounded-lg bg-indigo-600 px-6 py-3 font-semibold hover:bg-indigo-500 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+            className="rounded-xl bg-indigo-600 px-6 py-4 font-semibold text-lg hover:bg-indigo-500 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
           >
             {loading ? 'Création...' : 'Créer la room'}
           </button>
         </form>
       </div>
     </main>
+  )
+}
+
+export default function NewRoomPage() {
+  return (
+    <Suspense>
+      <NewRoomForm />
+    </Suspense>
   )
 }

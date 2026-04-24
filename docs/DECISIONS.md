@@ -141,10 +141,6 @@
 
 ---
 
-*Les prochaines décisions seront ajoutées ici par Claude Code au fil des sessions.*
-
----
-
 ## Décisions — Session 24/04/2026
 
 ---
@@ -183,3 +179,38 @@
 - Canvas/WebGL — sur-ingénierie totale
 - `requestAnimationFrame` manuel — plus complexe sans gain visible
 **Conséquences :** L'animation dépend de `setTimeout` — sur appareil très lent, le timing peut légèrement dériver. Imperceptible en pratique pour un jeu de soirée.
+
+---
+
+## Décisions — Session 24/04/2026 (suite) — Undercover
+
+---
+
+### Undercover : bypass du game-engine générique pour la logique d'état
+**Date :** 24/04/2026
+**Contexte :** Le jeu Undercover a une machine d'états complexe (description → vote → élimination → guess → fin) qui ne rentre pas dans le modèle round-by-round du game-engine générique. `processAction` dans le game-engine ne permet pas de muter l'état librement.
+**Choix :** Routes API dédiées `/api/rooms/[code]/undercover/start` et `/api/rooms/[code]/undercover/action` qui lisent et écrivent `rooms.state` directement. Le `GameModule` est enregistré dans le registry pour les métadonnées mais ses hooks `processAction`/`isRoundOver` ne sont pas utilisés.
+**Alternatives rejetées :**
+- Adapter le game-engine pour supporter la mutation d'état — changerait l'interface pour tous les jeux futurs
+- Encoder chaque phase comme un "round" — trop artificiel, rompt la sémantique des rounds
+**Conséquences :** Les jeux avec logique complexe (social deduction, bluff) suivront ce pattern. Les jeux simples (quiz) continuent d'utiliser le game-engine. C'est un pattern admis dans la plateforme.
+
+---
+
+### Undercover : rôles privés dans rooms.state mais jamais lus côté client
+**Date :** 24/04/2026
+**Contexte :** `rooms.state` est broadcast via Supabase Realtime à tous les joueurs. Mettre les rôles directement dans l'état exposé révélerait qui est l'undercover.
+**Choix :** `rooms.state.privateRoles` contient les rôles de tous les joueurs, mais le composant client `GameView.tsx` ne lit **jamais** ce champ. Chaque joueur appelle `GET /api/rooms/[code]/my-role?playerId=xxx` qui retourne uniquement son propre rôle — cette route utilise le client admin Supabase (bypass RLS) et ne retourne que les données du joueur demandeur.
+**Alternatives rejetées :**
+- Stocker les rôles dans une table séparée avec RLS — plus propre architecturalement mais complexité supplémentaire pour V1
+- Chiffrer les rôles dans le state — complexité côté client sans gain réel
+**Conséquences :** Si un joueur inspecte le réseau Realtime, il verra `privateRoles` dans le payload. Acceptable pour un jeu de soirée entre amis. En V2, migrer vers une table séparée avec RLS si nécessaire.
+
+---
+
+### Undercover : Mr. White activé seulement si ≥ 4 joueurs actifs
+**Date :** 24/04/2026
+**Contexte :** Avec 3 joueurs, si Mr. White est présent : 1 civil, 1 undercover, 1 mr_white. Mr. White n'a pas de mot donc se distingue immédiatement à la phase description.
+**Choix :** Dans la route `/undercover/start`, Mr. White n'est assigné que si `activePlayers.length >= 4`, même si l'option est activée dans la config.
+**Pourquoi :** Le jeu ne fonctionne pas avec 3 joueurs + Mr. White — trop facile à identifier. 4 joueurs minimum garantit 2 civils pour masquer Mr. White.
+**Conséquences :** Le host peut activer Mr. White avec 3 joueurs mais il ne sera pas assigné. L'UI ne prévient pas encore de ce cas — à améliorer.

@@ -94,6 +94,40 @@ Création de toute la documentation de référence avant d'écrire une ligne de 
 
 ---
 
+### Session du 24/04/2026 (suite) — Undercover
+
+**Objectif de la session :** Créer le jeu Undercover complet (spec + code + docs)
+
+**Ce qui a été livré :**
+- Spec du jeu validée par le dev (questions structurées : LLM, Mr. White, victoire en 2, spectateur)
+- 11 fichiers créés/modifiés — 0 erreur TypeScript au build
+- Architecture sécurisée : rôles privés via route server-side, jamais exposés au client Realtime
+- Migration SQL avec 29 paires de mots (3 thèmes)
+- `@anthropic-ai/sdk` installé
+- RoomLobby étendu : config Undercover + rendu GameView conditionnel par `game_type`
+
+**Ce qui a bien marché :**
+- Valider la spec complète avant de coder → zéro aller-retour sur le design
+- Bypass du game-engine documenté comme décision d'architecture → pattern réutilisable
+- Générer tous les fichiers en blocs parallèles → session rapide
+
+**Ce qui a bloqué ou pris plus de temps que prévu :**
+- Rien de bloquant — build propre au premier essai
+
+**Ajustements à faire pour la prochaine session :**
+- La migration SQL doit être appliquée manuellement dans le dashboard Supabase (pas de CLI Supabase configuré)
+- L'UI n'informe pas le host si Mr. White ne peut pas être assigné (3 joueurs) — à améliorer
+- Tester le flux complet en local avant de commit
+
+**Erreurs commises à ne pas répéter :**
+- Aucune cette session
+
+**Ce que ce dev a semblé apprécier particulièrement :**
+- Poser exactement les bonnes questions de spec en une fois (LLM, Mr. White, victoire, spectateur)
+- Livrer tout en un seul bloc sans morceau par morceau
+
+---
+
 <!-- TEMPLATE pour Claude Code — copier-coller à chaque fin de session
 
 ### Session du [DATE]
