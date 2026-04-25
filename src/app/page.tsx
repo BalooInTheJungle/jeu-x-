@@ -23,6 +23,16 @@ const GAMES: GameCard[] = [
     tagColor: 'bg-purple-900 text-purple-300',
   },
   {
+    id: 'image_quiz',
+    name: 'Image Quiz',
+    description: 'Reconnais le personnage avant ton adversaire. L\'arbitre valide à la voix.',
+    players: '2 joueurs + 1 arbitre',
+    duration: '5–15 min',
+    href: '/rooms/new?game=image_quiz',
+    tag: 'Brawl Stars',
+    tagColor: 'bg-yellow-900 text-yellow-300',
+  },
+  {
     id: 'toktik',
     name: 'TokTik',
     description: 'Qui arrêtera le chrono le plus proche de la cible ? Duel de précision.',

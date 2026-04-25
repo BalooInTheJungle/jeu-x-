@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { Button } from '@/components/ui/button'
 import UndercoverGameView from '@/components/games/undercover/GameView'
+import ImageQuizGameView from '@/components/games/image-quiz/GameView'
 import type { RoomPlayerRow, RoomRow } from '@/lib/platform/types'
 
 interface Props {
@@ -62,6 +63,10 @@ export default function RoomLobby({ initialRoom, currentPlayerId }: Props) {
       return <UndercoverGameView room={liveRoom} roomCode={code} currentPlayerId={currentPlayerId} />
     }
 
+    if (room.game_type === 'image_quiz') {
+      return <ImageQuizGameView room={liveRoom} roomCode={code} currentPlayerId={currentPlayerId} />
+    }
+
     return (
       <div className="text-center">
         <p className="text-2xl font-bold text-indigo-400">La partie commence !</p>
@@ -100,6 +105,8 @@ export default function RoomLobby({ initialRoom, currentPlayerId }: Props) {
       {isHost ? (
         room.game_type === 'undercover' ? (
           <UndercoverConfig code={code} playerId={currentPlayerId} players={players} />
+        ) : room.game_type === 'image_quiz' ? (
+          <ImageQuizConfig code={code} playerId={currentPlayerId} players={players} />
         ) : (
           <GenericStartButton
             onStart={async () => {
@@ -300,6 +307,100 @@ function UndercoverConfig({ code, playerId, players }: UndercoverConfigProps) {
       {players.length < 3 && (
         <p className="text-center text-slate-500 text-sm">
           Encore {3 - players.length} joueur{3 - players.length > 1 ? 's' : ''} pour démarrer
+        </p>
+      )}
+    </div>
+  )
+}
+
+// — Config Image Quiz —
+
+function ImageQuizConfig({ code, playerId, players }: UndercoverConfigProps) {
+  const nonHostPlayers = players.filter(p => !p.is_host)
+  const [duration, setDuration] = useState(60)
+  const [difficulty, setDifficulty] = useState<'normal' | 'hard'>('normal')
+  const [starting, setStarting] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+
+  async function handleStart() {
+    if (nonHostPlayers.length < 2) {
+      setError('Il faut au moins 2 joueurs (hors arbitre)')
+      return
+    }
+    setStarting(true)
+    setError(null)
+    try {
+      const res = await fetch(`/api/rooms/${code}/image-quiz/start`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ playerId, theme: 'brawl_stars', durationPerPlayer: duration, difficulty }),
+      })
+      const data = await res.json() as { error?: string }
+      if (!res.ok) setError(data.error ?? 'Erreur de démarrage')
+    } catch {
+      setError('Erreur réseau')
+    } finally {
+      setStarting(false)
+    }
+  }
+
+  return (
+    <div className="flex flex-col gap-4">
+      {/* Rôle arbitre */}
+      <div className="bg-amber-950/40 border border-amber-800/50 rounded-xl px-4 py-3">
+        <p className="text-sm font-semibold text-amber-300">Tu es l&apos;arbitre 🎯</p>
+        <p className="text-xs text-amber-500/80 mt-0.5">Tu vois les réponses et tu valides à la voix</p>
+      </div>
+
+      {/* Durée */}
+      <div>
+        <p className="text-sm text-slate-400 mb-2">Temps par joueur</p>
+        <div className="grid grid-cols-3 gap-2">
+          {[30, 60, 90].map(s => (
+            <button
+              key={s}
+              onClick={() => setDuration(s)}
+              className={`rounded-xl px-3 py-2 text-sm font-medium transition-colors ${
+                duration === s ? 'bg-indigo-600 text-white' : 'bg-zinc-800 text-slate-300 hover:bg-zinc-700'
+              }`}
+            >
+              {s}s
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {/* Difficulté */}
+      <div>
+        <p className="text-sm text-slate-400 mb-2">Difficulté</p>
+        <div className="grid grid-cols-2 gap-2">
+          {([['normal', 'Normal'], ['hard', 'Difficile 🌫️']] as const).map(([val, label]) => (
+            <button
+              key={val}
+              onClick={() => setDifficulty(val)}
+              className={`rounded-xl px-3 py-2 text-sm font-medium transition-colors ${
+                difficulty === val ? 'bg-indigo-600 text-white' : 'bg-zinc-800 text-slate-300 hover:bg-zinc-700'
+              }`}
+            >
+              {label}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {error && <p className="text-red-400 text-sm text-center">{error}</p>}
+
+      <Button
+        onClick={handleStart}
+        disabled={starting || nonHostPlayers.length < 2}
+        className="w-full py-4 text-lg mt-2"
+      >
+        {starting ? 'Chargement des images...' : 'Lancer Image Quiz'}
+      </Button>
+
+      {nonHostPlayers.length < 2 && (
+        <p className="text-center text-slate-500 text-sm">
+          Encore {2 - nonHostPlayers.length} joueur{2 - nonHostPlayers.length > 1 ? 's' : ''} pour démarrer
         </p>
       )}
     </div>
