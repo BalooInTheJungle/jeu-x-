@@ -12,9 +12,9 @@ Il comprend très bien les processus, les flux d'information et la logique produ
 Une plateforme web multi-joueurs temps réel où des amis jouent à des jeux de soirée dans des rooms éphémères — extensible à l'infini par des agents IA.
 
 ## Jeux prévus (dans l'ordre)
-1. **Image Quiz** — vois une image et devine ce que c'est, plusieurs thèmes paramétrables (jeux vidéo, géographie, logos...) *(V1 — premier jeu)*
-2. **Flag Quiz** — à définir *(V1 — second jeu)*
-3. **Undercover / Bluff** — jeux de déduction sociale *(V2)*
+1. **TokTik** — duel de précision temporelle, 2 joueurs, 1 téléphone *(V1 — jeu local)*
+2. **Undercover** — déduction sociale, trouve l'espion parmi vous *(V1 — complet)*
+3. **ELDU** — duel face à face : reconnais l'image avant ton adversaire, arbitre valide à la voix — thèmes : Brawl Stars, Drapeaux, Rappeurs FR *(V1 — complet)*
 4. D'autres jeux à définir — la plateforme est conçue pour les accueillir facilement
 
 ## Ce qui ne changera JAMAIS

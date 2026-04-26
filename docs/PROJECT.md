@@ -31,7 +31,7 @@ Des rooms éphémères avec un code à 4 lettres. Chaque jeu est un module indé
 |---|-----|--------------------|------|--------|
 | 1 | **TokTik** | Duel de précision temporelle — 2 joueurs, 1 téléphone | Local (sans rooms) | ✅ V1 |
 | 2 | **Undercover** | Déduction sociale — trouve l'espion parmi vous | Multijoueurs (rooms) | ✅ V1 |
-| 3 | **Image Quiz** | Vois une image, devine ce que c'est — plusieurs thèmes | Multijoueurs (rooms) | 🔲 Prochain |
+| 3 | **ELDU** | Duel face à face : reconnais l'image avant ton adversaire, arbitre valide à la voix | Multijoueurs (rooms) | ✅ V1 |
 | 4+ | À venir | La plateforme est conçue pour les accueillir | — | V2+ |
 
 ---

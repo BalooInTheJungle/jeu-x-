@@ -56,11 +56,16 @@ Ces tables ne sont jamais lues par la plateforme — seulement par le module du 
 
 ```
 game_undercover_word_pairs   ← paires civil/undercover par thème (29 paires seedées)
-game_image_quiz_questions    ← questions du jeu Image Quiz (à créer)
+game_eldu_questions          ← questions ELDU : image_url + answer + theme (brawl_stars | flags | rappers_fr)
 ```
 
 **Migration Undercover :** `supabase/migrations/20260424000000_undercover.sql`
 **Statut :** ⚠️ À appliquer manuellement dans le dashboard Supabase → SQL Editor
+
+**Migration ELDU (renommage) :** `supabase/migrations/20260426000000_rename_to_eldu.sql`
+**Statut :** ⚠️ À appliquer manuellement dans le dashboard Supabase → SQL Editor
+
+**Seed ELDU :** `npx tsx scripts/seed-eldu.ts all` — peuple Brawl Stars (99), Drapeaux (250), Rappeurs FR (34)
 
 ---
 
@@ -123,6 +128,18 @@ GET  /api/rooms/[code]/my-role            ← rôle privé server-side (jamais e
 POST /api/rooms/[code]/reset              ← commun à tous les jeux, relance le lobby
 ```
 
+### ELDU (routes dédiées — bypass game-engine)
+
+ELDU est un duel 2 joueurs avec chronomètre à double cadran (chess clock).
+L'arbitre (host) valide les réponses à la voix — la réponse n'est JAMAIS exposée au client joueur.
+
+```
+POST /api/rooms/[code]/eldu/start          ← pioche questions par thème, initialise les timers
+POST /api/rooms/[code]/eldu/action         ← correct / pass / timeout (host uniquement)
+GET  /api/rooms/[code]/eldu/current-answer ← réponse de la question en cours (host uniquement)
+POST /api/rooms/[code]/reset               ← commun à tous les jeux, relance le lobby
+```
+
 Voir `docs/DECISIONS.md` pour les raisons de ce bypass.
 
 ---
@@ -140,6 +157,9 @@ GET    /api/rooms/[code]/my-role               Rôle privé du joueur (Undercove
 POST   /api/rooms/[code]/reset                 Relancer une manche dans la même room (host)
 POST   /api/rooms/[code]/undercover/start      Démarrer Undercover (assigne rôles + mots)
 POST   /api/rooms/[code]/undercover/action     Action Undercover (description / vote / guess)
+POST   /api/rooms/[code]/eldu/start            Démarrer ELDU (pioche questions, initialise timers)
+POST   /api/rooms/[code]/eldu/action           Action ELDU : correct | pass | timeout (host)
+GET    /api/rooms/[code]/eldu/current-answer   Réponse courante (host uniquement)
 ```
 
 ---
@@ -205,8 +225,10 @@ src/
 │   ├── platform/
 │   │   └── RoomLobby.tsx                 ← Lobby + dispatch vers GameView selon game_type
 │   ├── games/
-│   │   └── undercover/
-│   │       └── GameView.tsx              ← UI complète Undercover (4 phases + fin)
+│   │   ├── undercover/
+│   │   │   └── GameView.tsx              ← UI complète Undercover (4 phases + fin)
+│   │   └── eldu/
+│   │       └── GameView.tsx              ← UI ELDU (arbitre, joueurs, timers, fin)
 │   └── ui/
 │       ├── button.tsx                    ← shadcn Button
 │       └── badge.tsx                     ← shadcn Badge
@@ -218,20 +240,24 @@ src/
 │   ├── games/
 │   │   ├── registry.ts                   ← Map game_id → GameModule
 │   │   ├── toktik/logic.ts               ← Logique pure TokTik (pas de DB)
-│   │   └── undercover/
-│   │       ├── index.ts                  ← GameModule (processAction délégue aux routes)
-│   │       └── words.ts                  ← Génération LLM (claude-haiku) + fallback DB
+│   │   ├── undercover/
+│   │   │   ├── index.ts                  ← GameModule (processAction délégue aux routes)
+│   │   │   └── words.ts                  ← Génération LLM (claude-haiku) + fallback DB
+│   │   └── eldu/
+│   │       └── index.ts                  ← GameModule ELDU (config : thème, durée, nb questions)
 │   └── supabase/
 │       ├── client.ts                     ← Client Supabase (browser)
 │       ├── admin.ts                      ← Client service_role (bypass RLS, server only)
 │       └── server.ts                     ← Client Supabase (server components)
 ├── types/
 │   └── games/
-│       └── undercover.ts                 ← UndercoverState, UndercoverRole, UndercoverPhase...
+│       ├── undercover.ts                 ← UndercoverState, UndercoverRole, UndercoverPhase...
+│       └── eldu.ts                       ← ElduState, ElduPhase, ElduTheme, ElduPublicQuestion...
 └── supabase/
     └── migrations/
-        ├── 20260423_platform_initial.sql ← Tables plateforme (appliquée ✅)
-        └── 20260424000000_undercover.sql  ← game_undercover_word_pairs (À APPLIQUER ⚠️)
+        ├── 20260423_platform_initial.sql    ← Tables plateforme (appliquée ✅)
+        ├── 20260424000000_undercover.sql     ← game_undercover_word_pairs (À APPLIQUER ⚠️)
+        └── 20260426000000_rename_to_eldu.sql ← Renomme game_image_quiz_questions → game_eldu_questions (À APPLIQUER ⚠️)
 ```
 
 ---

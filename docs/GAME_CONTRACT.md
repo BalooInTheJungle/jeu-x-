@@ -253,11 +253,11 @@ export const myGameModule: GameModule = {
 
 ```typescript
 // src/lib/games/registry.ts
-import { imageQuizModule } from './image-quiz'
+import { elduModule } from './eldu'
 import { myGameModule } from './my-game'
 
 export const gameRegistry = new Map([
-  ['image_quiz', imageQuizModule],
+  ['eldu', elduModule],
   ['my_game', myGameModule],   // ← ajouter ici
 ])
 ```

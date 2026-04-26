@@ -6,7 +6,7 @@ import { Suspense } from 'react'
 
 const GAME_LABELS: Record<string, string> = {
   undercover: 'Undercover',
-  image_quiz: 'Image Quiz',
+  eldu: 'ELDU',
 }
 
 function NewRoomForm() {

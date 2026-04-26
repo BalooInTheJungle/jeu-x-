@@ -78,7 +78,7 @@ Création de toute la documentation de référence avant d'écrire une ligne de 
 - Le dev a demandé un redesign shadcn après la première version → 1 itération perdue. **Règle : utiliser shadcn dès la première version pour les écrans setup.**
 
 **Ajustements à faire pour la prochaine session :**
-- Image Quiz suit le flux `agents/ORCHESTRATOR.md` — lire ce fichier en premier
+- Le prochain jeu suit le flux `agents/ORCHESTRATOR.md` — lire ce fichier en premier
 - Ne pas oublier de lire `docs/GAME_CONTRACT.md` avant de coder un jeu
 - TokTik n'est PAS dans le registry des jeux (`src/lib/games/registry.ts`) — c'est intentionnel, c'est un jeu local
 
@@ -128,6 +128,50 @@ Création de toute la documentation de référence avant d'écrire une ligne de 
 
 ---
 
+---
+
+### Session du 26/04/2026 — ELDU
+
+**Objectif de la session :** Créer le jeu ELDU (duel d'images face à face, chronomètre chess clock, arbitre)
+
+**Ce qui a été livré :**
+- Jeu ELDU complet : spec → code → documentation
+- 3 thèmes : Brawl Stars (99 brawlers), Drapeaux (250 pays), Rappeurs FR (34 artistes)
+- Chronomètre chess clock : timer par joueur, synchronisé server-side
+- Sécurité réponse : `/current-answer` route host-only, jamais dans le state client
+- Auto-timeout : guard `useRef` pour éviter les appels dupliqués
+- Script seed `scripts/seed-eldu.ts` avec CLI par thème
+- Renommage complet Image Quiz → ELDU dans tout le code et la documentation
+- Push GitHub
+
+**Ce qui a bien marché :**
+- Spécifier les contraintes de sécurité dès la spec (réponse jamais côté client) → 0 aller-retour
+- Chess clock implémenté proprement : `timerStartedAt` server, calcul côté client → pas de WebSocket custom
+- Bypass game-engine documenté comme pattern réutilisable dans DECISIONS.md
+
+**Ce qui a bloqué ou pris plus de temps que prévu :**
+- TypeScript excess property check sur l'objet retourné par `initGame` → fix : assigner à `const state: ElduState` avant de retourner
+- ESM compatibility : `__dirname` non disponible dans les scripts → fix : `path.dirname(fileURLToPath(import.meta.url))`
+- `tsconfig.json` compilait les scripts → fix : ajouter `"scripts"` dans `exclude`
+- `sed -i ''` macOS ne supporte pas la syntaxe multi-expression multi-argument → fix : tout dans une seule expression séparée par `;`
+- Mismatch type `'pass'` vs `'passed'` dans l'historique → fix : ternaire dans la route action
+
+**Ajustements à faire pour la prochaine session :**
+- Tester ELDU en conditions réelles avant de commencer un nouveau jeu (seed + migration non encore appliqués)
+- Le prochain jeu suit le flux `agents/ORCHESTRATOR.md`
+- Penser à vérifier que `scripts/` est toujours dans `tsconfig.exclude` si on ajoute un nouveau script
+
+**Erreurs commises à ne pas répéter :**
+- `sed` macOS : utiliser une seule expression avec `;` comme séparateur, pas plusieurs `-e`
+- Ne pas retourner un objet literal directement depuis `initGame` quand le type a des propriétés supplémentaires — toujours assigner à une variable typée
+
+**Ce que ce dev a semblé apprécier particulièrement :**
+- La spec récapitulative avant de coder (il a confirmé d'un seul "oui")
+- Livrer tout le jeu en un bloc complet, pas morceau par morceau
+- Les APIs gratuites sans clé trouvées en autonomie (Brawlify, REST Countries, Deezer)
+
+---
+
 <!-- TEMPLATE pour Claude Code — copier-coller à chaque fin de session
 
 ### Session du [DATE]
@@ -174,6 +218,8 @@ Création de toute la documentation de référence avant d'écrire une ligne de 
 | 6 | Toujours utiliser des tokens Tailwind standard (`zinc-950`) — jamais `bg-[#...]` arbitraire | Bug CSS session 24/04 |
 | 7 | Utiliser shadcn/ui dès la première version pour les écrans de config/setup | Redesign demandé session 24/04 |
 | 8 | Proposer un schéma ASCII du comportement visuel avant de coder une animation | Validé session 24/04 |
+| 9 | Ne jamais retourner un objet literal depuis `initGame` quand le type est étendu — toujours `const state: XState = {...}; return state` | Bug TypeScript ELDU |
+| 10 | `sed` macOS : une seule expression avec `;` comme séparateur, pas plusieurs `-e` avec plusieurs arguments | Bug sed ELDU |
 
 ### Règles en observation
 *(Patterns vus 1 fois — pas encore confirmés)*

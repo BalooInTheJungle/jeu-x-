@@ -8,9 +8,9 @@
 
 ## 🗓️ Session Courante
 
-**Date :** 24/04/2026
+**Date :** 26/04/2026
 **Durée :** ~2 jours (sessions intensives)
-**Objectif de la session :** Jeu Undercover complet + fix bugs + relance de manche
+**Objectif de la session :** Créer le jeu ELDU (ex-Image Quiz) + renommer dans toute la codebase
 
 ---
 
@@ -59,7 +59,20 @@
   - [x] `@anthropic-ai/sdk` installé
   - [x] `docs/games/UNDERCOVER.md` — spec complète
   - [x] Testé en conditions réelles : 3 joueurs, cycle complet, relance de manche ✅
-- [x] **Page d'accueil** — cartes TokTik + Undercover + rejoindre par code
+- [x] **Jeu ELDU** — duel face à face image quiz, chronomètre chess clock ✅ COMPLET (code)
+  - [x] `src/types/games/eldu.ts` — ElduState, ElduPhase, ElduTheme, ElduPublicQuestion...
+  - [x] `src/lib/games/eldu/index.ts` — GameModule enregistré (id: 'eldu')
+  - [x] `src/app/api/rooms/[code]/eldu/start/route.ts` — pioche questions, initialise timers
+  - [x] `src/app/api/rooms/[code]/eldu/action/route.ts` — correct | pass | timeout (host)
+  - [x] `src/app/api/rooms/[code]/eldu/current-answer/route.ts` — réponse courante (host only)
+  - [x] `src/components/games/eldu/GameView.tsx` — ArbitreView + PlayerView + FinishedScreen
+  - [x] `scripts/seed-eldu.ts` — seed Brawl Stars (99) + Drapeaux (250) + Rappeurs FR (34)
+  - [x] `supabase/migrations/20260426000000_rename_to_eldu.sql` — renomme la table
+  - [x] `RoomLobby.tsx` — ElduConfig + rendu ElduGameView
+  - [x] Page d'accueil : carte ELDU avec tag "Brawl Stars · Drapeaux · Rappeurs"
+  - [x] Tous les fichiers et mentions "image_quiz" / "Image Quiz" renommés en "eldu" / "ELDU"
+  - [x] `tsconfig.json` — `scripts/` exclu du build Next.js
+- [x] **Page d'accueil** — cartes TokTik + Undercover + ELDU + rejoindre par code
 - [x] **Rooms/new** — paramètre `?game=` dans l'URL pour présélectionner le jeu
 
 ---
@@ -70,30 +83,40 @@
 
 ---
 
-## 🚧 Blocages Connus
+## 🚧 Blocages Connus / Actions Manuelles Requises
 
-**Migration Supabase** — la table `game_undercover_word_pairs` doit être créée manuellement :
-- Ouvrir le dashboard Supabase → SQL Editor
-- Coller et exécuter `supabase/migrations/20260424000000_undercover.sql`
-- Sans ça, la génération de mots tombe en erreur DB (le LLM prend le relais, mais c'est le fallback)
+**1. Migrations Supabase à appliquer manuellement** (dashboard → SQL Editor) :
+- `supabase/migrations/20260424000000_undercover.sql` → table `game_undercover_word_pairs`
+- `supabase/migrations/20260426000000_rename_to_eldu.sql` → renomme `game_image_quiz_questions` → `game_eldu_questions`
+
+**2. Seed ELDU à lancer une seule fois** :
+```bash
+npx tsx scripts/seed-eldu.ts all
+# Peuple : 99 brawlers Brawl Stars + 250 pays drapeaux + 34 rappeurs FR
+```
+
+**3. Sécurité (urgent)** :
+- `.env.example` contenait de vraies clés avant le push git → **Régénérer** :
+  - `SUPABASE_SERVICE_ROLE_KEY` : dashboard Supabase → Settings → API → Regenerate
+  - `ANTHROPIC_API_KEY` : console.anthropic.com → API Keys → Regenerate
+  - Mettre à jour `.env.local` + Vercel (Settings → Environment Variables)
 
 ---
 
 ## 📋 À Faire — Session Suivante
 
-**Priorité 1 — Sécurité (urgent) :**
-- [ ] **Régénérer la `SUPABASE_SERVICE_ROLE_KEY`** dans le dashboard Supabase (Settings → API → Regenerate)
-- [ ] **Régénérer l'`ANTHROPIC_API_KEY`** dans console.anthropic.com
-- [ ] Mettre à jour les nouvelles clés dans `.env.local` et dans Vercel (Settings → Environment Variables)
-- Raison : `.env.example` contenait les vraies clés — remplacées avant le push mais présentes dans l'historique git
+**Priorité 1 — Actions manuelles bloquantes (voir ci-dessus)**
 
-**Priorité 2 — Image Quiz (premier vrai quiz multi-joueurs) :**
+**Priorité 2 — Tester ELDU en conditions réelles :**
+- [ ] Lancer le seed : `npx tsx scripts/seed-eldu.ts all`
+- [ ] Créer une room ELDU, choisir un thème
+- [ ] Tester avec 2 joueurs + 1 arbitre : flux complet (correct → pass → timeout → fin)
+- [ ] Vérifier que la réponse n'apparaît JAMAIS sur l'écran des joueurs non-arbitres
+- [ ] Vérifier l'auto-timeout quand un timer atteint 0
+
+**Priorité 3 — Prochain jeu :**
 - [ ] Lire `agents/ORCHESTRATOR.md` et suivre le flux de création de jeu
-- [ ] Créer `docs/games/IMAGE_QUIZ.md` (spec validée par le dev avant de coder)
-- [ ] Migration SQL : table `game_image_quiz_questions` + seed de questions
-- [ ] Module `GameModule` + routes dédiées
-- [ ] UI : ConfigForm dans RoomLobby, GameView, écran de résultats
-- [ ] Tester avec plusieurs joueurs
+- [ ] Valider la spec avec le dev avant de coder
 
 ---
 
@@ -111,11 +134,15 @@ shadcn/ui            : installé (Button, Badge)
 
 ### Commandes Utiles
 ```bash
-npm run dev          # Lance le serveur local → http://localhost:3000
-npm run build        # Build de production (vérifie les erreurs TypeScript)
-npm run lint         # Vérifie le style de code
-vercel deploy        # Déploie sur Vercel
-bash context/memory.sh  # Injecte le contexte git dans le terminal
+npm run dev                            # Lance le serveur local → http://localhost:3000
+npm run build                          # Build de production (vérifie les erreurs TypeScript)
+npm run lint                           # Vérifie le style de code
+vercel deploy                          # Déploie sur Vercel
+npx tsx scripts/seed-eldu.ts all       # Seed questions ELDU (Brawl Stars + drapeaux + rappeurs)
+npx tsx scripts/seed-eldu.ts brawl_stars  # Seed uniquement Brawl Stars
+npx tsx scripts/seed-eldu.ts flags        # Seed uniquement drapeaux
+npx tsx scripts/seed-eldu.ts rappers_fr   # Seed uniquement rappeurs FR
+bash context/memory.sh                 # Injecte le contexte git dans le terminal
 ```
 
 ### URLs Importantes
@@ -132,7 +159,7 @@ Vercel        : vercel.com → projet jeu-x
 ```
 src/
 ├── app/
-│   ├── page.tsx                          ← Accueil (cartes TokTik, Undercover, Rejoindre)
+│   ├── page.tsx                          ← Accueil (cartes TokTik, Undercover, ELDU, Rejoindre)
 │   ├── games/
 │   │   └── toktik/page.tsx               ← Jeu TokTik (standalone, pas de rooms)
 │   ├── rooms/
@@ -150,15 +177,21 @@ src/
 │           ├── next-round/route.ts
 │           ├── my-role/route.ts          ← Rôle privé (Undercover)
 │           ├── reset/route.ts            ← Relance une manche dans la même room
-│           └── undercover/
-│               ├── start/route.ts        ← Démarre Undercover (assigne rôles + mots)
-│               └── action/route.ts       ← description / vote / guess
+│           ├── undercover/
+│           │   ├── start/route.ts        ← Démarre Undercover (assigne rôles + mots)
+│           │   └── action/route.ts       ← description / vote / guess
+│           └── eldu/
+│               ├── start/route.ts        ← Démarre ELDU (pioche questions, initialise timers)
+│               ├── action/route.ts       ← correct | pass | timeout (host uniquement)
+│               └── current-answer/route.ts ← Réponse courante (host uniquement)
 ├── components/
 │   ├── platform/
 │   │   └── RoomLobby.tsx                 ← Lobby + dispatch vers GameView selon game_type
 │   ├── games/
-│   │   └── undercover/
-│   │       └── GameView.tsx              ← UI complète Undercover (4 phases)
+│   │   ├── undercover/
+│   │   │   └── GameView.tsx              ← UI complète Undercover (4 phases)
+│   │   └── eldu/
+│   │       └── GameView.tsx              ← ArbitreView + PlayerView + FinishedScreen
 │   └── ui/
 │       ├── button.tsx
 │       └── badge.tsx
@@ -170,20 +203,24 @@ src/
 │   ├── games/
 │   │   ├── registry.ts                   ← Map game_id → GameModule
 │   │   ├── toktik/logic.ts
-│   │   └── undercover/
-│   │       ├── index.ts                  ← GameModule (processAction délégue aux routes)
-│   │       └── words.ts                  ← Génération LLM + fallback DB
+│   │   ├── undercover/
+│   │   │   ├── index.ts
+│   │   │   └── words.ts
+│   │   └── eldu/
+│   │       └── index.ts                  ← GameModule ELDU
 │   └── supabase/
 │       ├── client.ts
 │       ├── admin.ts
 │       └── server.ts
 ├── types/
 │   └── games/
-│       └── undercover.ts                 ← UndercoverState, UndercoverRole, etc.
+│       ├── undercover.ts
+│       └── eldu.ts                       ← ElduState, ElduTheme, ElduPhase, etc.
 └── supabase/
     └── migrations/
-        ├── 20260423_platform_initial.sql ← Tables plateforme (appliquée ✅)
-        └── 20260424000000_undercover.sql  ← game_undercover_word_pairs (À APPLIQUER ⚠️)
+        ├── 20260423_platform_initial.sql     ← Tables plateforme (appliquée ✅)
+        ├── 20260424000000_undercover.sql      ← game_undercover_word_pairs (⚠️ À APPLIQUER)
+        └── 20260426000000_rename_to_eldu.sql  ← Renomme vers game_eldu_questions (⚠️ À APPLIQUER)
 ```
 
 ---
@@ -206,3 +243,14 @@ src/
 - `RoomLobby` status `'finished'` affiche toujours le GameView (sinon le lobby réapparaissait)
 - `config` et `state` ont des contraintes NOT NULL en DB → reset avec `{}` et non `null`
 - `.env.example` contenait de vraies clés → remplacées avant le push → **régénérer les clés** (Priorité 1)
+
+### 26/04/2026 — Session ELDU
+- Jeu renommé Image Quiz → ELDU partout dans le code et la documentation
+- Architecture chess clock : `timerStartedAt` (epoch ms server) + `timers` (ms restants par joueur)
+- Sécurité réponse : jamais dans `state` accessible client — route `/current-answer` host uniquement
+- Auto-timeout : `useRef` guard empêche les appels dupliqués quand le timer tombe à 0
+- 3 thèmes seedés via APIs publiques gratuites : Brawlify (Brawl Stars), REST Countries (drapeaux), Deezer (rappeurs FR)
+- Fix TypeScript : `initGame` doit assigner à `const state: ElduState` avant de retourner (excess property check)
+- Fix ESM : `__dirname` non disponible → `path.dirname(fileURLToPath(import.meta.url))`
+- Fix tsconfig : `scripts/` ajouté à `exclude` pour éviter que Next.js compile les seeds
+- Fix action route : `body.type === 'pass'` → `result: 'passed'` (mismatch entre type action et type historique)

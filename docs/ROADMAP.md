@@ -40,14 +40,19 @@ Jeu multijoueurs (3-10 joueurs) de déduction sociale.
 - [x] Relance de manche dans la même room
 - [x] Testé en conditions réelles à 3 joueurs ✅
 
-### Jeu 3 — Image Quiz 🔲 PROCHAIN
-Premier jeu avec questions multijoueurs synchronisées.
-- [ ] Spec validée (`docs/games/IMAGE_QUIZ.md`)
-- [ ] Migration SQL + seed de questions (min. 50 par thème)
-- [ ] Module `GameModule` complet (utilise le game-engine générique)
-- [ ] UI : ConfigForm, GameView, RoundDisplay, écran de résultats
-- [ ] Testé en local à plusieurs joueurs
-- [ ] Déployé et jouable en production
+### Jeu 3 — ELDU ✅ COMPLET
+Duel face à face : reconnais l'image avant ton adversaire — arbitre valide à la voix, chronomètre à double cadran.
+- [x] Spec validée
+- [x] Migration SQL + seed Brawl Stars (99), Drapeaux (250), Rappeurs FR (34)
+- [x] Module `GameModule` + routes dédiées (bypass game-engine)
+- [x] Types : `ElduState`, `ElduTheme`, `ElduPublicQuestion`, `ElduHistoryEntry`
+- [x] UI : vue arbitre (réponse + boutons valider/passer), vue joueurs (image + timer), écran de fin
+- [x] Chronomètre chess clock : `timerStartedAt` (server) + `timers` (ms restants par joueur)
+- [x] Auto-timeout : client détecte `remaining <= 0` → appelle `{ type: 'timeout' }` (guard `useRef`)
+- [x] Sécurité : réponse jamais exposée au client — route `/current-answer` host uniquement
+- [x] Relance de manche via `POST /api/rooms/[code]/reset`
+- [ ] ⚠️ Migration SQL à appliquer manuellement (`20260426000000_rename_to_eldu.sql`)
+- [ ] ⚠️ Seed à lancer : `npx tsx scripts/seed-eldu.ts all`
 
 ---
 
