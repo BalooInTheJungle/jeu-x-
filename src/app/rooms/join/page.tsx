@@ -43,7 +43,7 @@ export default function JoinRoomPage() {
   }
 
   return (
-    <main className="flex min-h-screen flex-col items-center justify-center bg-slate-950 p-8 text-white">
+    <main className="flex min-h-screen flex-col items-center justify-center bg-zinc-950 p-8 text-white">
       <div className="w-full max-w-sm">
         <h1 className="text-3xl font-bold mb-2">Rejoindre une partie</h1>
         <p className="text-slate-400 mb-8">Demande le code à ton ami qui a créé la room.</p>
@@ -57,7 +57,7 @@ export default function JoinRoomPage() {
               onChange={(e) => setCode(e.target.value.toUpperCase())}
               placeholder="Ex : XKZP"
               maxLength={4}
-              className="w-full rounded-lg bg-slate-800 border border-slate-700 px-4 py-3 text-white placeholder-slate-500 uppercase tracking-widest text-center text-xl focus:outline-none focus:ring-2 focus:ring-indigo-500"
+              className="w-full rounded-xl bg-zinc-800 border border-zinc-700 px-4 py-3 text-white placeholder-slate-500 uppercase tracking-widest text-center text-xl focus:outline-none focus:ring-2 focus:ring-indigo-500"
             />
           </div>
 
@@ -69,7 +69,7 @@ export default function JoinRoomPage() {
               onChange={(e) => setUsername(e.target.value)}
               placeholder="Ex : Luigi"
               maxLength={20}
-              className="w-full rounded-lg bg-slate-800 border border-slate-700 px-4 py-3 text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+              className="w-full rounded-xl bg-zinc-800 border border-zinc-700 px-4 py-3 text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-indigo-500"
             />
           </div>
 
@@ -78,7 +78,7 @@ export default function JoinRoomPage() {
           <button
             type="submit"
             disabled={loading || !code.trim() || !username.trim()}
-            className="rounded-lg bg-indigo-600 px-6 py-3 font-semibold hover:bg-indigo-500 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+            className="rounded-xl bg-indigo-600 px-6 py-3 font-semibold hover:bg-indigo-500 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
           >
             {loading ? 'Connexion...' : 'Rejoindre'}
           </button>

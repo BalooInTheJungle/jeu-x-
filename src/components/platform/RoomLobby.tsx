@@ -420,7 +420,7 @@ function ElduConfig({ code, playerId, players }: UndercoverConfigProps) {
         disabled={starting || nonHostPlayers.length < 2}
         className="w-full py-4 text-lg mt-2"
       >
-        {starting ? 'Chargement des images...' : 'Lancer Image Quiz'}
+        {starting ? 'Chargement des images...' : 'Lancer ELDU'}
       </Button>
 
       {nonHostPlayers.length < 2 && (
