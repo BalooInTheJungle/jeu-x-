@@ -1,11 +1,11 @@
 import type { GameModule, GameState, Player } from '@/lib/platform/types'
-import type { ImageQuizState } from '@/types/games/image-quiz'
+import type { ElduState } from '@/types/games/eldu'
 
-export const imageQuizModule: GameModule = {
+export const elduModule: GameModule = {
   config: {
-    id: 'image_quiz',
-    name: 'Image Quiz',
-    description: 'Reconnais le personnage avant que ton adversaire ne le fasse',
+    id: 'eldu',
+    name: 'ELDU',
+    description: 'Reconnais le personnage, le drapeau ou le rappeur avant ton adversaire',
     minPlayers: 3,
     maxPlayers: 10,
     estimatedDuration: '5-15 min',
@@ -15,7 +15,11 @@ export const imageQuizModule: GameModule = {
         type: 'select',
         label: 'Thème',
         default: 'brawl_stars',
-        options: [{ value: 'brawl_stars', label: 'Brawl Stars' }],
+        options: [
+          { value: 'brawl_stars', label: 'Brawl Stars' },
+          { value: 'flags', label: 'Drapeaux' },
+          { value: 'rappers_fr', label: 'Rappeurs FR' },
+        ],
       },
       {
         key: 'durationPerPlayer',
@@ -43,14 +47,14 @@ export const imageQuizModule: GameModule = {
 
   initGame(_config: unknown, players: Player[]): GameState {
     const allIds = players.map(p => p.id)
-    const state: ImageQuizState = {
+    const state: ElduState = {
       currentRound: 1,
       totalRounds: 1,
       scores: Object.fromEntries(allIds.map(id => [id, 0])),
       roundScores: Object.fromEntries(allIds.map(id => [id, 0])),
       status: 'playing',
       answeredPlayers: [],
-      imageQuizPhase: 'playing',
+      elduPhase: 'playing',
       playerOrder: [],
       playerNames: {},
       currentPlayerIndex: 0,
@@ -64,20 +68,16 @@ export const imageQuizModule: GameModule = {
   },
 
   async generateRound() { return {} },
-
-  async processAction() {
-    throw new Error('Image Quiz : utiliser POST /api/rooms/[code]/image-quiz/action')
-  },
-
+  async processAction() { throw new Error('ELDU : utiliser POST /api/rooms/[code]/eldu/action') },
   isRoundOver() { return false },
   computeRoundScores() { return {} },
 
   isGameOver(state: GameState): boolean {
-    return (state as ImageQuizState).imageQuizPhase === 'finished'
+    return (state as ElduState).elduPhase === 'finished'
   },
 
   getFinalRanking(state: GameState) {
-    const s = state as ImageQuizState
+    const s = state as ElduState
     const winnerId = s.winner
     return Object.entries(s.scores)
       .sort(([, a], [, b]) => b - a)

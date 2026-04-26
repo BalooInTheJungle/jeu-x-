@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import { Button } from '@/components/ui/button'
 import type { RoomRow, RoomPlayerRow } from '@/lib/platform/types'
-import type { ImageQuizState, ImageQuizHistoryEntry } from '@/types/games/image-quiz'
+import type { ElduState, ElduHistoryEntry } from '@/types/games/eldu'
 
 interface Props {
   room: RoomRow & { room_players: RoomPlayerRow[] }
@@ -25,7 +25,7 @@ function formatMs(ms: number): string {
   return `${s}s`
 }
 
-function computeDisplayedTime(state: ImageQuizState, playerId: string): number {
+function computeDisplayedTime(state: ElduState, playerId: string): number {
   const currentPlayerId = state.playerOrder[state.currentPlayerIndex]
   if (playerId === currentPlayerId) {
     return Math.max(0, state.timers[playerId] - (Date.now() - state.timerStartedAt))
@@ -33,9 +33,9 @@ function computeDisplayedTime(state: ImageQuizState, playerId: string): number {
   return Math.max(0, state.timers[playerId] ?? 0)
 }
 
-export default function ImageQuizGameView({ room, roomCode, currentPlayerId }: Props) {
+export default function ElduGameView({ room, roomCode, currentPlayerId }: Props) {
   const isHost = room.room_players.some(p => p.id === currentPlayerId && p.is_host)
-  const [state, setState] = useState<ImageQuizState>(room.state as ImageQuizState)
+  const [state, setState] = useState<ElduState>(room.state as ElduState)
   const [currentAnswer, setCurrentAnswer] = useState<string | null>(null)
   const [submitting, setSubmitting] = useState(false)
   const [tick, setTick] = useState(0)
@@ -46,10 +46,10 @@ export default function ImageQuizGameView({ room, roomCode, currentPlayerId }: P
 
   // Tick toutes les 100ms pour mettre à jour les timers affichés
   useEffect(() => {
-    if (state.imageQuizPhase !== 'playing') return
+    if (state.elduPhase !== 'playing') return
     const id = setInterval(() => setTick(t => t + 1), 100)
     return () => clearInterval(id)
-  }, [state.imageQuizPhase])
+  }, [state.elduPhase])
 
   // Reset du guard timeout à chaque changement de question
   useEffect(() => {
@@ -60,28 +60,28 @@ export default function ImageQuizGameView({ room, roomCode, currentPlayerId }: P
   useEffect(() => {
     const supabase = createClient()
     const channel = supabase
-      .channel(`image-quiz-${room.id}`)
+      .channel(`eldu-${room.id}`)
       .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'rooms', filter: `id=eq.${room.id}` },
-        (payload) => { setState(payload.new.state as ImageQuizState) })
+        (payload) => { setState(payload.new.state as ElduState) })
       .subscribe()
     return () => { void supabase.removeChannel(channel) }
   }, [room.id])
 
   // Fetch la réponse pour l'arbitre à chaque changement de question
   useEffect(() => {
-    if (!isHost || state.imageQuizPhase !== 'playing') return
+    if (!isHost || state.elduPhase !== 'playing') return
     setCurrentAnswer(null)
-    fetch(`/api/rooms/${roomCode}/image-quiz/current-answer?playerId=${currentPlayerId}`)
+    fetch(`/api/rooms/${roomCode}/eldu/current-answer?playerId=${currentPlayerId}`)
       .then(r => r.json())
       .then((d: { answer?: string }) => setCurrentAnswer(d.answer ?? null))
       .catch(() => setCurrentAnswer(null))
-  }, [state.questionIndex, isHost, state.imageQuizPhase]) // eslint-disable-line react-hooks/exhaustive-deps
+  }, [state.questionIndex, isHost, state.elduPhase]) // eslint-disable-line react-hooks/exhaustive-deps
 
   const submitAction = useCallback(async (type: 'correct' | 'pass' | 'timeout') => {
     if (submitting) return
     setSubmitting(true)
     try {
-      await fetch(`/api/rooms/${roomCode}/image-quiz/action`, {
+      await fetch(`/api/rooms/${roomCode}/eldu/action`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ playerId: currentPlayerId, type }),
@@ -93,7 +93,7 @@ export default function ImageQuizGameView({ room, roomCode, currentPlayerId }: P
 
   // Auto-timeout : l'arbitre détecte quand le timer tombe à 0
   useEffect(() => {
-    if (!isHost || state.imageQuizPhase !== 'playing' || timeoutFiredRef.current || submitting) return
+    if (!isHost || state.elduPhase !== 'playing' || timeoutFiredRef.current || submitting) return
     const currentPlayerId_ = state.playerOrder[state.currentPlayerIndex]
     const remaining = computeDisplayedTime(state, currentPlayerId_)
     if (remaining <= 0) {
@@ -102,7 +102,7 @@ export default function ImageQuizGameView({ room, roomCode, currentPlayerId }: P
     }
   }, [tick]) // eslint-disable-line react-hooks/exhaustive-deps
 
-  if (state.imageQuizPhase === 'finished') {
+  if (state.elduPhase === 'finished') {
     return (
       <FinishedScreen
         state={state}
@@ -194,7 +194,7 @@ function ArbitreView({
   totalDurationMs, tick: _tick, getUsername,
   onCorrect, onPass,
 }: {
-  state: ImageQuizState
+  state: ElduState
   currentQuestion: { id: string; imageUrl: string } | undefined
   currentAnswer: string | null
   submitting: boolean
@@ -283,7 +283,7 @@ function PlayerView({
   state, currentPlayerId, currentQuestion, isHard,
   totalDurationMs, tick: _tick, getUsername,
 }: {
-  state: ImageQuizState
+  state: ElduState
   currentPlayerId: string
   currentQuestion: { id: string; imageUrl: string } | undefined
   isHard: boolean
@@ -353,7 +353,7 @@ function PlayerView({
 function FinishedScreen({
   state, currentPlayerId, isHost, roomCode, getUsername,
 }: {
-  state: ImageQuizState
+  state: ElduState
   currentPlayerId: string
   isHost: boolean
   roomCode: string
@@ -432,7 +432,7 @@ function FinishedScreen({
         <div className="w-full max-w-sm mb-8">
           <p className="text-xs text-zinc-600 uppercase tracking-widest mb-3 text-center">Questions jouées</p>
           <div className="grid grid-cols-4 gap-2">
-            {state.history.map((entry: ImageQuizHistoryEntry, i: number) => (
+            {state.history.map((entry: ElduHistoryEntry, i: number) => (
               <div key={i} className="relative">
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img

@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { Button } from '@/components/ui/button'
 import UndercoverGameView from '@/components/games/undercover/GameView'
-import ImageQuizGameView from '@/components/games/image-quiz/GameView'
+import ElduGameView from '@/components/games/eldu/GameView'
 import type { RoomPlayerRow, RoomRow } from '@/lib/platform/types'
 
 interface Props {
@@ -63,8 +63,8 @@ export default function RoomLobby({ initialRoom, currentPlayerId }: Props) {
       return <UndercoverGameView room={liveRoom} roomCode={code} currentPlayerId={currentPlayerId} />
     }
 
-    if (room.game_type === 'image_quiz') {
-      return <ImageQuizGameView room={liveRoom} roomCode={code} currentPlayerId={currentPlayerId} />
+    if (room.game_type === 'eldu') {
+      return <ElduGameView room={liveRoom} roomCode={code} currentPlayerId={currentPlayerId} />
     }
 
     return (
@@ -105,8 +105,8 @@ export default function RoomLobby({ initialRoom, currentPlayerId }: Props) {
       {isHost ? (
         room.game_type === 'undercover' ? (
           <UndercoverConfig code={code} playerId={currentPlayerId} players={players} />
-        ) : room.game_type === 'image_quiz' ? (
-          <ImageQuizConfig code={code} playerId={currentPlayerId} players={players} />
+        ) : room.game_type === 'eldu' ? (
+          <ElduConfig code={code} playerId={currentPlayerId} players={players} />
         ) : (
           <GenericStartButton
             onStart={async () => {
@@ -315,8 +315,15 @@ function UndercoverConfig({ code, playerId, players }: UndercoverConfigProps) {
 
 // — Config Image Quiz —
 
-function ImageQuizConfig({ code, playerId, players }: UndercoverConfigProps) {
+const ELDU_THEMES = [
+  { value: 'brawl_stars', label: '🎮 Brawl Stars' },
+  { value: 'flags', label: '🌍 Drapeaux' },
+  { value: 'rappers_fr', label: '🎤 Rappeurs FR' },
+] as const
+
+function ElduConfig({ code, playerId, players }: UndercoverConfigProps) {
   const nonHostPlayers = players.filter(p => !p.is_host)
+  const [theme, setTheme] = useState<'brawl_stars' | 'flags' | 'rappers_fr'>('brawl_stars')
   const [duration, setDuration] = useState(60)
   const [difficulty, setDifficulty] = useState<'normal' | 'hard'>('normal')
   const [starting, setStarting] = useState(false)
@@ -330,10 +337,10 @@ function ImageQuizConfig({ code, playerId, players }: UndercoverConfigProps) {
     setStarting(true)
     setError(null)
     try {
-      const res = await fetch(`/api/rooms/${code}/image-quiz/start`, {
+      const res = await fetch(`/api/rooms/${code}/eldu/start`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ playerId, theme: 'brawl_stars', durationPerPlayer: duration, difficulty }),
+        body: JSON.stringify({ playerId, theme, durationPerPlayer: duration, difficulty }),
       })
       const data = await res.json() as { error?: string }
       if (!res.ok) setError(data.error ?? 'Erreur de démarrage')
@@ -350,6 +357,24 @@ function ImageQuizConfig({ code, playerId, players }: UndercoverConfigProps) {
       <div className="bg-amber-950/40 border border-amber-800/50 rounded-xl px-4 py-3">
         <p className="text-sm font-semibold text-amber-300">Tu es l&apos;arbitre 🎯</p>
         <p className="text-xs text-amber-500/80 mt-0.5">Tu vois les réponses et tu valides à la voix</p>
+      </div>
+
+      {/* Thème */}
+      <div>
+        <p className="text-sm text-slate-400 mb-2">Thème</p>
+        <div className="grid grid-cols-3 gap-2">
+          {ELDU_THEMES.map(t => (
+            <button
+              key={t.value}
+              onClick={() => setTheme(t.value)}
+              className={`rounded-xl px-3 py-2 text-sm font-medium transition-colors ${
+                theme === t.value ? 'bg-indigo-600 text-white' : 'bg-zinc-800 text-slate-300 hover:bg-zinc-700'
+              }`}
+            >
+              {t.label}
+            </button>
+          ))}
+        </div>
       </div>
 
       {/* Durée */}

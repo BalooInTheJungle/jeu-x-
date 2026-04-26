@@ -23,13 +23,13 @@ const GAMES: GameCard[] = [
     tagColor: 'bg-purple-900 text-purple-300',
   },
   {
-    id: 'image_quiz',
-    name: 'Image Quiz',
+    id: 'eldu',
+    name: 'ELDU',
     description: 'Reconnais le personnage avant ton adversaire. L\'arbitre valide à la voix.',
     players: '2 joueurs + 1 arbitre',
     duration: '5–15 min',
-    href: '/rooms/new?game=image_quiz',
-    tag: 'Brawl Stars',
+    href: '/rooms/new?game=eldu',
+    tag: 'Brawl Stars · Drapeaux · Rappeurs',
     tagColor: 'bg-yellow-900 text-yellow-300',
   },
   {

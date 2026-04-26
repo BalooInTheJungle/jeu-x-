@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createAdminClient } from '@/lib/supabase/admin'
 import type { RoomRow, RoomPlayerRow } from '@/lib/platform/types'
-import type { ImageQuizState, ImageQuizHistoryEntry } from '@/types/games/image-quiz'
+import type { ElduState, ElduHistoryEntry } from '@/types/games/eldu'
 
 type ActionBody =
   | { playerId: string; type: 'correct' }
@@ -14,7 +14,7 @@ export async function POST(
 ) {
   const { code } = params
   const body = await req.json() as ActionBody
-  console.log('[POST /api/rooms/:code/image-quiz/action] input:', { code, type: body.type, playerId: body.playerId })
+  console.log('[POST /api/rooms/:code/eldu/action] input:', { code, type: body.type, playerId: body.playerId })
 
   if (!body.playerId || !body.type) {
     return NextResponse.json({ error: 'playerId et type requis' }, { status: 400 })
@@ -30,9 +30,9 @@ export async function POST(
   if (error || !data) return NextResponse.json({ error: 'Room introuvable' }, { status: 404 })
 
   const room = data as unknown as RoomRow & { room_players: RoomPlayerRow[] }
-  const state = room.state as ImageQuizState
+  const state = room.state as ElduState
 
-  if (room.status !== 'playing' || state.imageQuizPhase !== 'playing') {
+  if (room.status !== 'playing' || state.elduPhase !== 'playing') {
     return NextResponse.json({ error: 'Aucune partie en cours' }, { status: 400 })
   }
 
@@ -47,7 +47,7 @@ export async function POST(
   const elapsed = now - state.timerStartedAt
   const remainingForCurrent = state.timers[currentPlayerId] - elapsed
 
-  let newState: ImageQuizState
+  let newState: ElduState
 
   // Timeout : le joueur courant a perdu
   if (body.type === 'timeout' || remainingForCurrent <= 0) {
@@ -55,7 +55,7 @@ export async function POST(
     newState = {
       ...state,
       timers: { ...state.timers, [currentPlayerId]: 0 },
-      imageQuizPhase: 'finished',
+      elduPhase: 'finished',
       status: 'finished',
       winner: winnerId,
       scores: { ...state.scores },
@@ -72,14 +72,14 @@ export async function POST(
     let answer = ''
     if (currentQuestion) {
       const { data: qData } = await supabase
-        .from('game_image_quiz_questions')
+        .from('game_eldu_questions')
         .select('answer')
         .eq('id', currentQuestion.id)
         .single()
       answer = (qData?.answer as string) ?? ''
     }
 
-    const historyEntry: ImageQuizHistoryEntry = {
+    const historyEntry: ElduHistoryEntry = {
       questionId: currentQuestion?.id ?? '',
       imageUrl: currentQuestion?.imageUrl ?? '',
       answer,
@@ -113,7 +113,7 @@ export async function POST(
         timers: updatedTimers,
         scores: newScores,
         history: newHistory,
-        imageQuizPhase: 'finished',
+        elduPhase: 'finished',
         status: 'finished',
         winner: winnerId,
       }
@@ -130,7 +130,7 @@ export async function POST(
     }
   }
 
-  const isFinished = newState.imageQuizPhase === 'finished'
+  const isFinished = newState.elduPhase === 'finished'
 
   const { error: updateError } = await supabase
     .from('rooms')
@@ -141,10 +141,10 @@ export async function POST(
     .eq('id', room.id)
 
   if (updateError) {
-    console.error('[image-quiz/action] DB update error:', updateError)
+    console.error('[eldu/action] DB update error:', updateError)
     return NextResponse.json({ error: 'Erreur serveur' }, { status: 500 })
   }
 
-  console.log('[image-quiz/action] result:', { phase: newState.imageQuizPhase, questionIndex: newState.questionIndex })
-  return NextResponse.json({ ok: true, phase: newState.imageQuizPhase })
+  console.log('[eldu/action] result:', { phase: newState.elduPhase, questionIndex: newState.questionIndex })
+  return NextResponse.json({ ok: true, phase: newState.elduPhase })
 }

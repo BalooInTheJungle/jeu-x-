@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getRoom, toPlayers } from '@/lib/platform/room'
 import { createAdminClient } from '@/lib/supabase/admin'
-import type { ImageQuizState, ImageQuizRoomConfig, ImageQuizPublicQuestion } from '@/types/games/image-quiz'
+import type { ElduState, ElduRoomConfig, ElduPublicQuestion } from '@/types/games/eldu'
 
 export async function POST(
   req: NextRequest,
@@ -14,7 +14,7 @@ export async function POST(
     durationPerPlayer?: number
     difficulty?: string
   }
-  console.log('[POST /api/rooms/:code/image-quiz/start] input:', {
+  console.log('[POST /api/rooms/:code/eldu/start] input:', {
     code,
     theme: body.theme,
     durationPerPlayer: body.durationPerPlayer,
@@ -42,17 +42,17 @@ export async function POST(
 
   // Fetch questions depuis la DB
   const { data: questionsRaw, error: qError } = await supabase
-    .from('game_image_quiz_questions')
+    .from('game_eldu_questions')
     .select('id, image_url')
     .eq('theme', theme)
 
   if (qError || !questionsRaw?.length) {
-    console.error('[image-quiz/start] no questions:', qError)
+    console.error('[eldu/start] no questions:', qError)
     return NextResponse.json({ error: 'Aucune question disponible — applique la migration SQL et lance le script de seed' }, { status: 500 })
   }
 
   // Mélange aléatoire
-  const questions: ImageQuizPublicQuestion[] = [...questionsRaw]
+  const questions: ElduPublicQuestion[] = [...questionsRaw]
     .sort(() => Math.random() - 0.5)
     .map(q => ({ id: q.id as string, imageUrl: q.image_url as string }))
 
@@ -60,14 +60,14 @@ export async function POST(
   const playerOrder = activePlayers.slice(0, 2).map(p => p.id)
   const playerNames = Object.fromEntries(allPlayers.map(p => [p.id, p.username]))
 
-  const state: ImageQuizState = {
+  const state: ElduState = {
     currentRound: 1,
     totalRounds: 1,
     scores: Object.fromEntries(allPlayers.map(p => [p.id, 0])),
     roundScores: Object.fromEntries(allPlayers.map(p => [p.id, 0])),
     status: 'playing',
     answeredPlayers: [],
-    imageQuizPhase: 'playing',
+    elduPhase: 'playing',
     playerOrder,
     playerNames,
     currentPlayerIndex: 0,
@@ -81,7 +81,7 @@ export async function POST(
     history: [],
   }
 
-  const config: ImageQuizRoomConfig = {
+  const config: ElduRoomConfig = {
     theme: theme as 'brawl_stars',
     durationPerPlayer: body.durationPerPlayer ?? 60,
     difficulty: difficulty as 'normal' | 'hard',
@@ -93,10 +93,10 @@ export async function POST(
     .eq('id', room.id)
 
   if (error) {
-    console.error('[image-quiz/start] DB error:', error)
+    console.error('[eldu/start] DB error:', error)
     return NextResponse.json({ error: 'Erreur serveur' }, { status: 500 })
   }
 
-  console.log('[image-quiz/start] result: started with', playerOrder.length, 'players,', questions.length, 'questions')
+  console.log('[eldu/start] result: started with', playerOrder.length, 'players,', questions.length, 'questions')
   return NextResponse.json({ ok: true })
 }
