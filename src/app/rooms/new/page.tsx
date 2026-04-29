@@ -3,17 +3,13 @@
 import { useState } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { Suspense } from 'react'
-
-const GAME_LABELS: Record<string, string> = {
-  undercover: 'Undercover',
-  eldu: 'ELDU',
-}
+import { GAME_THEMES, DEFAULT_THEME } from '@/lib/games/theme'
 
 function NewRoomForm() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const gameType = searchParams.get('game') ?? 'undercover'
-  const gameLabel = GAME_LABELS[gameType] ?? gameType
+  const theme = GAME_THEMES[gameType] ?? DEFAULT_THEME
 
   const [username, setUsername] = useState('')
   const [loading, setLoading] = useState(false)
@@ -50,15 +46,43 @@ function NewRoomForm() {
   }
 
   return (
-    <main className="flex min-h-screen flex-col items-center justify-center bg-zinc-950 p-8 text-white">
-      <div className="w-full max-w-sm">
-        <p className="text-sm text-slate-500 uppercase tracking-widest mb-1">{gameLabel}</p>
-        <h1 className="text-3xl font-bold mb-2">Nouvelle partie</h1>
-        <p className="text-slate-400 mb-8">Tu seras le host — tu partages le code avec tes amis.</p>
+    <main style={{
+      minHeight: '100vh', background: '#FAFAF8',
+      fontFamily: "'Nunito', sans-serif",
+      display: 'flex', flexDirection: 'column',
+    }}>
+      {/* Header band with game gradient */}
+      <div style={{
+        background: theme.gradient,
+        padding: '48px 24px 36px',
+        position: 'relative', overflow: 'hidden',
+        textAlign: 'center',
+      }}>
+        <div style={{ position:'absolute', top:-30, right:-20, width:120, height:120, borderRadius:'50%', background:'rgba(255,255,255,0.1)' }}/>
+        <div style={{ position:'absolute', bottom:-20, left:-10, width:80, height:80, borderRadius:'50%', background:'rgba(255,255,255,0.08)' }}/>
 
-        <form onSubmit={handleSubmit} className="flex flex-col gap-4">
+        <div style={{
+          fontSize: 64, lineHeight: 1, marginBottom: 12,
+          animation: `${theme.floatAnimation} 3s ease-in-out infinite`,
+          filter: 'drop-shadow(0 8px 20px rgba(0,0,0,0.2))',
+        }}>
+          {theme.emoji}
+        </div>
+        <h1 style={{ fontSize: 24, fontWeight: 900, color: '#FFF', margin: '0 0 6px' }}>
+          Nouvelle partie
+        </h1>
+        <p style={{ fontSize: 13, fontWeight: 700, color: 'rgba(255,255,255,0.75)', margin: 0 }}>
+          {theme.name} · Tu seras le host
+        </p>
+      </div>
+
+      {/* Form */}
+      <div style={{ flex: 1, padding: '32px 24px', maxWidth: 400, width: '100%', margin: '0 auto', boxSizing: 'border-box' }}>
+        <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
           <div>
-            <label className="block text-sm text-slate-400 mb-1">Ton pseudo</label>
+            <label style={{ display: 'block', fontSize: 13, fontWeight: 800, color: '#1A1A2E', marginBottom: 6 }}>
+              Ton pseudo
+            </label>
             <input
               type="text"
               value={username}
@@ -66,18 +90,38 @@ function NewRoomForm() {
               placeholder="Ex : Mario"
               maxLength={20}
               autoFocus
-              className="w-full rounded-xl bg-zinc-800 border border-zinc-700 px-4 py-3 text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+              style={{
+                width: '100%', boxSizing: 'border-box',
+                borderRadius: 16, border: '2px solid #E8E8E8',
+                background: '#FFF',
+                padding: '14px 20px',
+                fontSize: 16, fontWeight: 700, color: '#1A1A2E',
+                fontFamily: "'Nunito', sans-serif",
+                outline: 'none',
+              }}
             />
           </div>
 
-          {error && <p className="text-red-400 text-sm">{error}</p>}
+          {error && (
+            <p style={{ fontSize: 13, fontWeight: 700, color: '#E53935', margin: 0 }}>{error}</p>
+          )}
 
           <button
             type="submit"
             disabled={loading || !username.trim()}
-            className="rounded-xl bg-indigo-600 px-6 py-4 font-semibold text-lg hover:bg-indigo-500 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+            style={{
+              width: '100%', padding: 18,
+              borderRadius: 20, border: 'none',
+              background: 'linear-gradient(90deg, #FF6035, #FF8C60)',
+              color: '#FFF', fontSize: 17, fontWeight: 900,
+              fontFamily: "'Nunito', sans-serif",
+              boxShadow: '0 8px 28px rgba(255,96,53,0.45)',
+              cursor: 'pointer',
+              opacity: (loading || !username.trim()) ? 0.5 : 1,
+              marginTop: 8,
+            }}
           >
-            {loading ? 'Création...' : 'Créer la room'}
+            {loading ? 'Création...' : '🚀 Créer la room'}
           </button>
         </form>
       </div>

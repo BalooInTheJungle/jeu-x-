@@ -4,8 +4,6 @@ import {
   useState, useEffect, useRef, useCallback,
   type CSSProperties, type ReactNode,
 } from 'react'
-import { Button } from '@/components/ui/button'
-import { Badge } from '@/components/ui/badge'
 import {
   PLAYER_COLORS,
   type GameConfig,
@@ -24,9 +22,9 @@ type Phase =
   | 'setup'
   | 'show_target'
   | 'countdown'
-  | 'playing'       // mode séquentiel
-  | 'handover'      // mode séquentiel
-  | 'playing_both'  // mode simultané
+  | 'playing'
+  | 'handover'
+  | 'playing_both'
   | 'round_result'
   | 'game_over'
 
@@ -91,7 +89,6 @@ export default function TokTikPage() {
     setPhase('show_target')
   }, [])
 
-  // Tap en mode séquentiel
   const handleSequentialTap = useCallback(() => {
     if (phase !== 'playing') return
     const elapsed = Math.round(performance.now() - timerStartRef.current)
@@ -140,9 +137,11 @@ export default function TokTikPage() {
 
   if (phase === 'show_target') {
     const content = (
-      <div className="flex flex-col items-center gap-4">
-        <span className="text-white/40 text-xs tracking-[0.3em] uppercase">Mémorise</span>
-        <span className="text-white font-black leading-none" style={{ fontSize: '4.5rem' }}>
+      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 16 }}>
+        <span style={{ color: 'rgba(255,255,255,0.4)', fontSize: 12, letterSpacing: '0.3em', textTransform: 'uppercase' }}>
+          Mémorise
+        </span>
+        <span style={{ color: '#FFF', fontWeight: 900, fontSize: '4.5rem', lineHeight: 1, fontFamily: "'Nunito', sans-serif" }}>
           {formatTime(targetMs)}
         </span>
       </div>
@@ -154,13 +153,19 @@ export default function TokTikPage() {
 
   if (phase === 'countdown') {
     const content = (i: 0 | 1) => (
-      <div className="flex flex-col items-center gap-6">
-        <span className="text-white/40 text-sm">Joueur {i + 1}</span>
-        <div
-          className="w-28 h-28 rounded-full flex items-center justify-center shadow-2xl"
-          style={{ backgroundColor: config.colors[i].hex }}
-        >
-          <span className="text-white font-black text-6xl">{countdown}</span>
+      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 24 }}>
+        <span style={{ color: 'rgba(255,255,255,0.4)', fontSize: 14, fontFamily: "'Nunito', sans-serif" }}>
+          Joueur {i + 1}
+        </span>
+        <div style={{
+          width: 112, height: 112, borderRadius: '50%',
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+          backgroundColor: config.colors[i].hex,
+          boxShadow: '0 8px 32px rgba(0,0,0,0.4)',
+        }}>
+          <span style={{ color: '#FFF', fontWeight: 900, fontSize: '3.5rem', fontFamily: "'Nunito', sans-serif" }}>
+            {countdown}
+          </span>
         </div>
       </div>
     )
@@ -176,13 +181,13 @@ export default function TokTikPage() {
         onPointerDown={handleSequentialTap}
         style={{ cursor: 'pointer', touchAction: 'manipulation', userSelect: 'none' }}
       >
-        <span className="text-white/70 text-xl font-medium pointer-events-none">
+        <span style={{ color: 'rgba(255,255,255,0.7)', fontSize: 20, fontFamily: "'Nunito', sans-serif", fontWeight: 600, pointerEvents: 'none' }}>
           Joueur {activePlayer + 1}
         </span>
-        <span className="text-white font-black pointer-events-none mt-2" style={{ fontSize: '5.5rem', lineHeight: 1 }}>
+        <span style={{ color: '#FFF', fontWeight: 900, fontSize: '5.5rem', lineHeight: 1, fontFamily: "'Nunito', sans-serif", marginTop: 8, pointerEvents: 'none' }}>
           TAP
         </span>
-        <span className="text-white/40 text-sm mt-8 pointer-events-none">
+        <span style={{ color: 'rgba(255,255,255,0.4)', fontSize: 13, marginTop: 32, pointerEvents: 'none', fontFamily: "'Nunito', sans-serif" }}>
           Touche quand le temps est écoulé
         </span>
       </FullScreen>
@@ -193,15 +198,17 @@ export default function TokTikPage() {
     const color = config.colors[1].hex
     return (
       <FullScreen bg="#09090b">
-        <div className="flex flex-col items-center gap-6 px-8 text-center">
-          <div className="w-16 h-16 rounded-full flex items-center justify-center" style={{ backgroundColor: color + '22' }}>
-            <div className="w-8 h-8 rounded-full" style={{ backgroundColor: color }} />
+        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 24, padding: '0 32px', textAlign: 'center' }}>
+          <div style={{ width: 64, height: 64, borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', backgroundColor: color + '22' }}>
+            <div style={{ width: 32, height: 32, borderRadius: '50%', backgroundColor: color }} />
           </div>
-          <p className="text-zinc-300 text-2xl font-semibold leading-snug">
+          <p style={{ color: '#D4D4D8', fontSize: 22, fontWeight: 600, lineHeight: 1.4, margin: 0, fontFamily: "'Nunito', sans-serif" }}>
             Passe le téléphone à<br />
-            <span className="font-black" style={{ color }}>Joueur 2</span>
+            <span style={{ fontWeight: 900, color }}>Joueur 2</span>
           </p>
-          <p className="text-zinc-600 text-sm">La partie reprend dans 3 secondes</p>
+          <p style={{ color: '#52525B', fontSize: 13, margin: 0, fontFamily: "'Nunito', sans-serif" }}>
+            La partie reprend dans 3 secondes
+          </p>
         </div>
       </FullScreen>
     )
@@ -248,29 +255,47 @@ export default function TokTikPage() {
     const winner = s0 > s1 ? 0 : s1 > s0 ? 1 : null
     const winnerColor = winner !== null ? config.colors[winner].hex : '#6b7280'
     return (
-      <FullScreen bg={winnerColor}>
-        <div className="flex flex-col items-center gap-3 pointer-events-none">
-          <span className="text-white/70 text-lg font-medium">Fin de partie</span>
-          <span className="text-white font-black text-5xl">
+      <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', backgroundColor: winnerColor, fontFamily: "'Nunito', sans-serif" }}>
+        <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 12, padding: '0 24px' }}>
+          <span style={{ color: 'rgba(255,255,255,0.7)', fontSize: 16, fontWeight: 600 }}>Fin de partie</span>
+          <span style={{ color: '#FFF', fontWeight: 900, fontSize: '2.8rem', textAlign: 'center', lineHeight: 1.1 }}>
             {winner !== null ? `Joueur ${winner + 1} gagne !` : 'Égalité !'}
           </span>
         </div>
-        <div className="flex gap-12 mt-12">
-          {([0, 1] as const).map((i) => (
-            <div key={i} className="flex flex-col items-center gap-3">
-              <div className="w-8 h-8 rounded-full ring-2 ring-white/30" style={{ backgroundColor: config.colors[i].hex }} />
-              <span className="text-white/60 text-sm">Joueur {i + 1}</span>
-              <span className="text-white font-black text-4xl">{game.scores[i]}</span>
-            </div>
-          ))}
+
+        <div style={{
+          background: 'rgba(0,0,0,0.35)',
+          backdropFilter: 'blur(8px)',
+          borderRadius: '28px 28px 0 0',
+          padding: '28px 24px 40px',
+          display: 'flex', flexDirection: 'column', gap: 16,
+        }}>
+          <div style={{ display: 'flex', justifyContent: 'center', gap: 48, marginBottom: 8 }}>
+            {([0, 1] as const).map((i) => (
+              <div key={i} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 8 }}>
+                <div style={{ width: 32, height: 32, borderRadius: '50%', backgroundColor: config.colors[i].hex, boxShadow: '0 0 0 3px rgba(255,255,255,0.3)' }} />
+                <span style={{ color: 'rgba(255,255,255,0.6)', fontSize: 13 }}>Joueur {i + 1}</span>
+                <span style={{ color: '#FFF', fontWeight: 900, fontSize: '2.5rem', lineHeight: 1 }}>{game.scores[i]}</span>
+              </div>
+            ))}
+          </div>
+
+          <button
+            onPointerDown={() => { setGame(null); setPhase('setup') }}
+            style={{
+              width: '100%', padding: '18px',
+              borderRadius: 20, border: 'none',
+              background: 'linear-gradient(90deg, #FF6035, #FF8C60)',
+              color: '#FFF', fontSize: 17, fontWeight: 900,
+              fontFamily: "'Nunito', sans-serif",
+              boxShadow: '0 8px 28px rgba(255,96,53,0.45)',
+              cursor: 'pointer',
+            }}
+          >
+            🔁 Rejouer
+          </button>
         </div>
-        <Button
-          className="mt-14 bg-white/20 hover:bg-white/30 text-white border-0 px-10 py-6 text-lg font-bold rounded-2xl"
-          onPointerDown={() => { setGame(null); setPhase('setup') }}
-        >
-          Rejouer
-        </Button>
-      </FullScreen>
+      </div>
     )
   }
 
@@ -286,8 +311,13 @@ function FullScreen({
 }) {
   return (
     <div
-      className="fixed inset-0 flex flex-col items-center justify-center"
-      style={{ backgroundColor: bg, ...style }}
+      style={{
+        position: 'fixed', inset: 0,
+        display: 'flex', flexDirection: 'column',
+        alignItems: 'center', justifyContent: 'center',
+        backgroundColor: bg, fontFamily: "'Nunito', sans-serif",
+        ...style,
+      }}
       onPointerDown={onPointerDown}
     >
       {children}
@@ -301,14 +331,14 @@ function SplitScreen({
   colors: [PlayerColor, PlayerColor]; top: ReactNode; bottom: ReactNode
 }) {
   return (
-    <div className="fixed inset-0 flex flex-col">
-      <div className="flex-1 flex items-center justify-center" style={{ backgroundColor: colors[0].hex }}>
+    <div style={{ position: 'fixed', inset: 0, display: 'flex', flexDirection: 'column' }}>
+      <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', backgroundColor: colors[0].hex }}>
         <div style={{ transform: 'rotate(180deg)', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
           {top}
         </div>
       </div>
-      <div className="h-1 bg-black/50 z-10 flex-shrink-0" />
-      <div className="flex-1 flex items-center justify-center" style={{ backgroundColor: colors[1].hex }}>
+      <div style={{ height: 4, backgroundColor: 'rgba(0,0,0,0.5)', flexShrink: 0, zIndex: 10 }} />
+      <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', backgroundColor: colors[1].hex }}>
         {bottom}
       </div>
     </div>
@@ -325,10 +355,10 @@ function SimultaneousScreen({
   timerStartRef: React.MutableRefObject<number>
   onDone: (taps: [number, number]) => void
 }) {
-  const [tapStates, setTapStates]           = useState<[boolean, boolean]>([false, false])
-  const [dividerPos, setDividerPos]         = useState(50)
+  const [tapStates, setTapStates]             = useState<[boolean, boolean]>([false, false])
+  const [dividerPos, setDividerPos]           = useState(50)
   const [dividerDuration, setDividerDuration] = useState(200)
-  const [oscStarted, setOscStarted]         = useState(false)
+  const [oscStarted, setOscStarted]           = useState(false)
 
   const localTapsRef = useRef<[number | null, number | null]>([null, null])
   const onDoneRef    = useRef(onDone)
@@ -360,7 +390,6 @@ function SimultaneousScreen({
     ])
   }, [oscStarted, timerStartRef])
 
-  // Quand les deux ont tapé → lancer l'animation
   useEffect(() => {
     if (!tapStates[0] || !tapStates[1] || oscStarted) return
     setOscStarted(true)
@@ -370,11 +399,8 @@ function SimultaneousScreen({
 
     const d0 = Math.abs(t0 - targetMs)
     const d1 = Math.abs(t1 - targetMs)
-    // P0 gagne → sa zone (haut) grandit → dividerPos → 93
-    // P1 gagne → sa zone (bas) grandit → dividerPos → 7
     const finalPos = d0 < d1 ? 93 : d1 < d0 ? 7 : 50
 
-    // Séquence d'oscillation (descend d'abord, puis monte, décroit)
     const steps = [38, 62, 43, 57, 47, 53]
     steps.forEach((pos, i) => {
       later(() => {
@@ -383,13 +409,11 @@ function SimultaneousScreen({
       }, i * 230)
     })
 
-    // Snap final vers le gagnant
     later(() => {
       setDividerDuration(700)
       setDividerPos(finalPos)
     }, steps.length * 230 + 80)
 
-    // Notifier le parent après l'animation
     later(() => {
       onDoneRef.current([t0, t1])
     }, steps.length * 230 + 900)
@@ -400,60 +424,47 @@ function SimultaneousScreen({
 
   return (
     <div
-      className="fixed inset-0"
-      style={{ touchAction: 'none', userSelect: 'none' }}
+      style={{ position: 'fixed', inset: 0, touchAction: 'none', userSelect: 'none' }}
       onPointerDown={handlePointerDown}
     >
-      {/* Zone joueur 0 — haut, contenu retourné */}
       <div
-        className="absolute inset-x-0 top-0 overflow-hidden"
         style={{
+          position: 'absolute', left: 0, right: 0, top: 0,
           height: `${dividerPos}%`,
           backgroundColor: p0,
           filter: tapStates[0] ? 'none' : 'grayscale(1) brightness(0.25)',
           transition: `height ${dividerDuration}ms ease-in-out, filter 0.35s ease`,
+          overflow: 'hidden',
         }}
       >
-        <div
-          className="h-full flex flex-col items-center justify-center gap-3 pointer-events-none"
-          style={{ transform: 'rotate(180deg)' }}
-        >
-          {tapStates[0] ? (
-            <CheckedState label="Joueur 1" />
-          ) : (
-            <TapPrompt label="Joueur 1" />
-          )}
+        <div style={{ height: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 12, transform: 'rotate(180deg)', pointerEvents: 'none' }}>
+          {tapStates[0] ? <CheckedState label="Joueur 1" /> : <TapPrompt label="Joueur 1" />}
         </div>
       </div>
 
-      {/* Ligne de séparation animée */}
       <div
-        className="absolute inset-x-0 z-10"
         style={{
+          position: 'absolute', left: 0, right: 0, zIndex: 10,
           top: `${dividerPos}%`,
-          height: '4px',
+          height: 4,
           backgroundColor: 'rgba(0,0,0,0.55)',
           transform: 'translateY(-50%)',
           transition: `top ${dividerDuration}ms ease-in-out`,
         }}
       />
 
-      {/* Zone joueur 1 — bas */}
       <div
-        className="absolute inset-x-0 bottom-0 overflow-hidden"
         style={{
+          position: 'absolute', left: 0, right: 0, bottom: 0,
           top: `${dividerPos}%`,
           backgroundColor: p1,
           filter: tapStates[1] ? 'none' : 'grayscale(1) brightness(0.25)',
           transition: `top ${dividerDuration}ms ease-in-out, filter 0.35s ease`,
+          overflow: 'hidden',
         }}
       >
-        <div className="h-full flex flex-col items-center justify-center gap-3 pointer-events-none">
-          {tapStates[1] ? (
-            <CheckedState label="Joueur 2" />
-          ) : (
-            <TapPrompt label="Joueur 2" />
-          )}
+        <div style={{ height: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 12, pointerEvents: 'none' }}>
+          {tapStates[1] ? <CheckedState label="Joueur 2" /> : <TapPrompt label="Joueur 2" />}
         </div>
       </div>
     </div>
@@ -463,11 +474,9 @@ function SimultaneousScreen({
 function TapPrompt({ label }: { label: string }) {
   return (
     <>
-      <span className="text-white/50 text-sm font-medium">{label}</span>
-      <span className="text-white font-black" style={{ fontSize: '4.5rem', lineHeight: 1 }}>
-        TAP
-      </span>
-      <span className="text-white/30 text-xs">Touche ta zone</span>
+      <span style={{ color: 'rgba(255,255,255,0.5)', fontSize: 13, fontFamily: "'Nunito', sans-serif", fontWeight: 600 }}>{label}</span>
+      <span style={{ color: '#FFF', fontWeight: 900, fontSize: '4.5rem', lineHeight: 1, fontFamily: "'Nunito', sans-serif" }}>TAP</span>
+      <span style={{ color: 'rgba(255,255,255,0.3)', fontSize: 12, fontFamily: "'Nunito', sans-serif" }}>Touche ta zone</span>
     </>
   )
 }
@@ -475,18 +484,29 @@ function TapPrompt({ label }: { label: string }) {
 function CheckedState({ label }: { label: string }) {
   return (
     <>
-      <span className="text-white/60 text-sm">{label}</span>
-      <div className="w-16 h-16 rounded-full bg-white/20 flex items-center justify-center">
-        <svg className="w-8 h-8 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
+      <span style={{ color: 'rgba(255,255,255,0.6)', fontSize: 13, fontFamily: "'Nunito', sans-serif" }}>{label}</span>
+      <div style={{ width: 64, height: 64, borderRadius: '50%', backgroundColor: 'rgba(255,255,255,0.2)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+        <svg width="32" height="32" fill="none" viewBox="0 0 24 24" stroke="white" strokeWidth={3}>
           <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
         </svg>
       </div>
-      <span className="text-white/60 text-xs">En attente...</span>
+      <span style={{ color: 'rgba(255,255,255,0.6)', fontSize: 12, fontFamily: "'Nunito', sans-serif" }}>En attente...</span>
     </>
   )
 }
 
 // ── SETUP ─────────────────────────────────────────────────────────────────────
+
+function SetupSection({ title, children }: { title: string; children: ReactNode }) {
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+      <span style={{ fontSize: 13, fontWeight: 900, color: '#1A1A2E', textTransform: 'uppercase', letterSpacing: 1 }}>
+        {title}
+      </span>
+      {children}
+    </div>
+  )
+}
 
 function SetupScreen({
   defaultConfig, onStart,
@@ -501,57 +521,74 @@ function SetupScreen({
   const [mode, setMode]             = useState<GameMode>(defaultConfig.mode)
 
   const modeDescriptions: Record<GameMode, string> = {
-    sequential:    'Chacun joue à son tour — passe le téléphone',
-    simultaneous:  'Les deux jouent en même temps, chacun dans sa zone',
+    sequential:   'Tour par tour · passe le téléphone',
+    simultaneous: 'Les deux jouent en même temps',
   }
 
   return (
-    <div className="min-h-screen w-full bg-zinc-950 flex flex-col px-5 py-10 gap-7">
-      <div className="flex flex-col gap-1 pt-4">
-        <h1 className="text-white font-black text-4xl tracking-tight">TokTik</h1>
-        <p className="text-zinc-500 text-sm">Duel de précision · 1 téléphone</p>
-      </div>
+    <div style={{ minHeight: '100vh', background: '#FAFAF8', fontFamily: "'Nunito', sans-serif", display: 'flex', flexDirection: 'column' }}>
 
-      {/* Mode de jeu */}
-      <div className="flex flex-col gap-3">
-        <span className="text-zinc-400 text-sm font-medium">Mode de jeu</span>
-        <div className="grid grid-cols-2 gap-2">
-          {(['sequential', 'simultaneous'] as const).map((m) => (
-            <Button
-              key={m}
-              variant="outline"
-              onPointerDown={() => setMode(m)}
-              className={
-                mode === m
-                  ? 'bg-white text-zinc-950 border-white font-bold hover:bg-white hover:text-zinc-950 flex flex-col h-auto py-3'
-                  : 'bg-zinc-900 text-zinc-400 border-zinc-800 hover:bg-zinc-800 hover:text-white flex flex-col h-auto py-3'
-              }
-            >
-              <span className="font-semibold text-sm">
-                {m === 'sequential' ? 'Tour par tour' : 'Simultané'}
-              </span>
-              <span className="text-xs opacity-60 font-normal leading-tight mt-0.5 whitespace-normal text-center">
-                {modeDescriptions[m]}
-              </span>
-            </Button>
-          ))}
+      {/* Header gradient TokTik */}
+      <div style={{
+        background: 'linear-gradient(135deg, #1B5E20 0%, #2E7D32 50%, #66BB6A 100%)',
+        padding: '48px 24px 36px',
+        position: 'relative', overflow: 'hidden',
+        textAlign: 'center',
+      }}>
+        <div style={{ position: 'absolute', top: -30, right: -20, width: 120, height: 120, borderRadius: '50%', background: 'rgba(255,255,255,0.1)' }} />
+        <div style={{ position: 'absolute', bottom: -20, left: -10, width: 80, height: 80, borderRadius: '50%', background: 'rgba(255,255,255,0.08)' }} />
+        <div style={{ fontSize: 64, lineHeight: 1, marginBottom: 12, animation: 'floatC 3s ease-in-out infinite', filter: 'drop-shadow(0 8px 20px rgba(0,0,0,0.2))' }}>
+          ⏱️
         </div>
+        <h1 style={{ fontSize: 24, fontWeight: 900, color: '#FFF', margin: '0 0 6px' }}>TokTik</h1>
+        <p style={{ fontSize: 13, fontWeight: 700, color: 'rgba(255,255,255,0.75)', margin: 0 }}>
+          Duel de précision · 2 joueurs · 1 téléphone
+        </p>
       </div>
 
-      <div className="h-px bg-zinc-800" />
+      {/* Form body */}
+      <div style={{ flex: 1, padding: '24px 20px 40px', display: 'flex', flexDirection: 'column', gap: 20, maxWidth: 440, width: '100%', margin: '0 auto', boxSizing: 'border-box' }}>
 
-      {/* Couleurs joueurs */}
-      <div className="flex flex-col gap-5">
+        {/* Mode de jeu */}
+        <SetupSection title="Mode de jeu">
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
+            {(['sequential', 'simultaneous'] as const).map((m) => (
+              <button
+                key={m}
+                onPointerDown={() => setMode(m)}
+                style={{
+                  padding: '14px 12px',
+                  borderRadius: 16,
+                  border: mode === m ? '2px solid #2E7D32' : '2px solid #E8E8E8',
+                  background: mode === m ? '#F1F8E9' : '#FFF',
+                  cursor: 'pointer', textAlign: 'left',
+                  fontFamily: "'Nunito', sans-serif",
+                }}
+              >
+                <div style={{ fontSize: 14, fontWeight: 800, color: mode === m ? '#2E7D32' : '#1A1A2E', marginBottom: 4 }}>
+                  {m === 'sequential' ? 'Tour par tour' : 'Simultané'}
+                </div>
+                <div style={{ fontSize: 11, fontWeight: 600, color: mode === m ? '#2E7D32' : '#999', lineHeight: 1.3 }}>
+                  {modeDescriptions[m]}
+                </div>
+              </button>
+            ))}
+          </div>
+        </SetupSection>
+
+        <div style={{ height: 1, background: '#E8E8E8' }} />
+
+        {/* Couleurs joueurs */}
         {([
           { idx: 0 as const, color: p1color, other: p2color, set: setP1color },
           { idx: 1 as const, color: p2color, other: p1color, set: setP2color },
         ]).map(({ idx, color, other, set }) => (
-          <div key={idx} className="flex flex-col gap-3">
-            <div className="flex items-center gap-3">
-              <div className="w-3.5 h-3.5 rounded-full ring-2 ring-white/20" style={{ backgroundColor: color.hex }} />
-              <span className="text-zinc-400 text-sm font-medium">Joueur {idx + 1}</span>
+          <SetupSection key={idx} title={`Joueur ${idx + 1}`}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 4 }}>
+              <div style={{ width: 14, height: 14, borderRadius: '50%', backgroundColor: color.hex, boxShadow: '0 0 0 2px rgba(0,0,0,0.1)' }} />
+              <span style={{ fontSize: 13, fontWeight: 700, color: '#666' }}>{color.label}</span>
             </div>
-            <div className="grid grid-cols-8 gap-2">
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(8, 1fr)', gap: 8 }}>
               {PLAYER_COLORS.map((c) => {
                 const taken    = c.hex === other.hex
                 const isActive = c.hex === color.hex
@@ -560,80 +597,94 @@ function SetupScreen({
                     key={c.hex}
                     disabled={taken}
                     onPointerDown={() => !taken && set(c)}
-                    className="aspect-square rounded-lg transition-all duration-150"
                     style={{
+                      aspectRatio: '1',
+                      borderRadius: 10,
+                      border: 'none',
                       backgroundColor: c.hex,
                       opacity: taken ? 0.15 : 1,
-                      outline: isActive ? '2px solid white' : '2px solid transparent',
-                      outlineOffset: '2px',
-                      transform: isActive ? 'scale(1.15)' : 'scale(1)',
+                      outline: isActive ? '2px solid #1A1A2E' : '2px solid transparent',
+                      outlineOffset: 2,
+                      transform: isActive ? 'scale(1.2)' : 'scale(1)',
+                      cursor: taken ? 'not-allowed' : 'pointer',
+                      transition: 'transform 0.15s',
                     }}
                   />
                 )
               })}
             </div>
-          </div>
+          </SetupSection>
         ))}
-      </div>
 
-      <div className="h-px bg-zinc-800" />
+        <div style={{ height: 1, background: '#E8E8E8' }} />
 
-      {/* Rounds */}
-      <div className="flex flex-col gap-3">
-        <span className="text-zinc-400 text-sm font-medium">Nombre de rounds</span>
-        <div className="grid grid-cols-3 gap-2">
-          {[5, 10, 15].map((n) => (
-            <Button
-              key={n}
-              variant="outline"
-              onPointerDown={() => setRounds(n)}
-              className={
-                rounds === n
-                  ? 'bg-white text-zinc-950 border-white font-bold hover:bg-white hover:text-zinc-950'
-                  : 'bg-zinc-900 text-zinc-400 border-zinc-800 hover:bg-zinc-800 hover:text-white'
-              }
-            >
-              {n}
-            </Button>
-          ))}
+        {/* Rounds */}
+        <SetupSection title="Nombre de rounds">
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 8 }}>
+            {[5, 10, 15].map((n) => (
+              <button
+                key={n}
+                onPointerDown={() => setRounds(n)}
+                style={{
+                  padding: '14px 0',
+                  borderRadius: 14,
+                  border: rounds === n ? '2px solid #FF6035' : '2px solid #E8E8E8',
+                  background: rounds === n ? '#FFF5F2' : '#FFF',
+                  fontSize: 18, fontWeight: 900,
+                  color: rounds === n ? '#FF6035' : '#1A1A2E',
+                  cursor: 'pointer',
+                  fontFamily: "'Nunito', sans-serif",
+                }}
+              >
+                {n}
+              </button>
+            ))}
+          </div>
+        </SetupSection>
+
+        {/* Difficulté */}
+        <SetupSection title="Difficulté">
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
+            {([
+              ['easy', 'Facile',    '3s – 8s'],
+              ['hard', 'Difficile', '8s – 20s'],
+            ] as const).map(([val, label, range]) => (
+              <button
+                key={val}
+                onPointerDown={() => setDifficulty(val)}
+                style={{
+                  padding: '14px 12px',
+                  borderRadius: 16,
+                  border: difficulty === val ? '2px solid #FF6035' : '2px solid #E8E8E8',
+                  background: difficulty === val ? '#FFF5F2' : '#FFF',
+                  cursor: 'pointer', textAlign: 'center',
+                  fontFamily: "'Nunito', sans-serif",
+                }}
+              >
+                <div style={{ fontSize: 14, fontWeight: 800, color: difficulty === val ? '#FF6035' : '#1A1A2E' }}>{label}</div>
+                <div style={{ fontSize: 12, fontWeight: 600, color: difficulty === val ? '#FF8C60' : '#999', marginTop: 2 }}>{range}</div>
+              </button>
+            ))}
+          </div>
+        </SetupSection>
+
+        {/* CTA */}
+        <div style={{ marginTop: 'auto', paddingTop: 8 }}>
+          <button
+            onPointerDown={() => onStart({ totalRounds: rounds, difficulty, colors: [p1color, p2color], mode })}
+            style={{
+              width: '100%', padding: 18,
+              borderRadius: 20, border: 'none',
+              background: 'linear-gradient(90deg, #FF6035, #FF8C60)',
+              color: '#FFF', fontSize: 17, fontWeight: 900,
+              fontFamily: "'Nunito', sans-serif",
+              boxShadow: '0 8px 28px rgba(255,96,53,0.45)',
+              cursor: 'pointer',
+            }}
+          >
+            🚀 Jouer
+          </button>
         </div>
-      </div>
-
-      {/* Difficulté */}
-      <div className="flex flex-col gap-3">
-        <span className="text-zinc-400 text-sm font-medium">Difficulté</span>
-        <div className="grid grid-cols-2 gap-2">
-          {([
-            ['easy',  'Facile',    '3s – 8s'],
-            ['hard',  'Difficile', '8s – 20s'],
-          ] as const).map(([val, label, range]) => (
-            <Button
-              key={val}
-              variant="outline"
-              onPointerDown={() => setDifficulty(val)}
-              className={
-                difficulty === val
-                  ? 'bg-white text-zinc-950 border-white font-bold hover:bg-white hover:text-zinc-950 flex flex-col h-auto py-3'
-                  : 'bg-zinc-900 text-zinc-400 border-zinc-800 hover:bg-zinc-800 hover:text-white flex flex-col h-auto py-3'
-              }
-            >
-              <span className="font-semibold">{label}</span>
-              <span className="text-xs opacity-60 font-normal">{range}</span>
-            </Button>
-          ))}
-        </div>
-      </div>
-
-      {/* Jouer */}
-      <div className="mt-auto pt-2">
-        <Button
-          className="w-full py-6 text-lg font-black bg-white text-zinc-950 hover:bg-zinc-100 rounded-2xl"
-          onPointerDown={() =>
-            onStart({ totalRounds: rounds, difficulty, colors: [p1color, p2color], mode })
-          }
-        >
-          Jouer
-        </Button>
       </div>
     </div>
   )
@@ -655,44 +706,70 @@ function RoundResultScreen({
   const winnerColor = result.winner === 'tie' ? '#6b7280' : config.colors[result.winner].hex
 
   return (
-    <div className="min-h-screen flex flex-col" style={{ backgroundColor: winnerColor }}>
-      <div className="flex-1 flex flex-col items-center justify-center gap-3 px-6">
-        <Badge className="bg-white/20 text-white border-0 text-xs">
+    <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', backgroundColor: winnerColor, fontFamily: "'Nunito', sans-serif" }}>
+
+      {/* Zone colorée avec le résultat */}
+      <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 12, padding: '0 24px' }}>
+        <div style={{
+          display: 'inline-block',
+          background: 'rgba(255,255,255,0.2)',
+          borderRadius: 100, padding: '4px 14px',
+          fontSize: 12, fontWeight: 800, color: '#FFF',
+        }}>
           Round {currentRound} / {totalRounds}
-        </Badge>
-        <p className="text-white font-black text-4xl text-center leading-tight">
+        </div>
+        <p style={{ color: '#FFF', fontWeight: 900, fontSize: '2.5rem', textAlign: 'center', lineHeight: 1.2, margin: 0 }}>
           {result.winner === 'tie' ? 'Égalité !' : `Joueur ${result.winner + 1} gagne !`}
         </p>
-        <p className="text-white/60 text-sm">
-          Cible : <span className="font-bold text-white/80">{formatTime(result.targetMs)}</span>
+        <p style={{ color: 'rgba(255,255,255,0.6)', fontSize: 14, margin: 0 }}>
+          Cible : <span style={{ fontWeight: 900, color: 'rgba(255,255,255,0.85)' }}>{formatTime(result.targetMs)}</span>
         </p>
       </div>
 
-      <div className="bg-zinc-950/60 backdrop-blur-sm rounded-t-3xl p-6 flex flex-col gap-4">
+      {/* Panel blanc arrondi */}
+      <div style={{
+        background: 'rgba(0,0,0,0.3)',
+        backdropFilter: 'blur(8px)',
+        borderRadius: '28px 28px 0 0',
+        padding: '24px 20px 40px',
+        display: 'flex', flexDirection: 'column', gap: 12,
+      }}>
         {([0, 1] as const).map((i) => (
-          <div key={i} className="flex items-center gap-4">
-            <div className="w-4 h-4 rounded-full flex-shrink-0 ring-2 ring-white/20" style={{ backgroundColor: config.colors[i].hex }} />
-            <div className="flex-1 min-w-0">
-              <p className="text-zinc-400 text-xs mb-0.5">Joueur {i + 1}</p>
-              <p className="text-white text-sm">
-                tapé à <span className="font-bold">{formatTime(result.tapMs[i])}</span>
-                <span className="text-zinc-400"> · écart </span>
-                <span className="font-bold">{formatTime(result.diffMs[i])}</span>
+          <div key={i} style={{
+            display: 'flex', alignItems: 'center', gap: 14,
+            background: 'rgba(255,255,255,0.1)',
+            borderRadius: 16, padding: '14px 16px',
+          }}>
+            <div style={{ width: 16, height: 16, borderRadius: '50%', flexShrink: 0, backgroundColor: config.colors[i].hex, boxShadow: '0 0 0 2px rgba(255,255,255,0.3)' }} />
+            <div style={{ flex: 1, minWidth: 0 }}>
+              <p style={{ color: 'rgba(255,255,255,0.5)', fontSize: 11, margin: '0 0 2px', fontWeight: 700 }}>Joueur {i + 1}</p>
+              <p style={{ color: '#FFF', fontSize: 13, margin: 0 }}>
+                tapé à <span style={{ fontWeight: 900 }}>{formatTime(result.tapMs[i])}</span>
+                <span style={{ color: 'rgba(255,255,255,0.5)' }}> · écart </span>
+                <span style={{ fontWeight: 900 }}>{formatTime(result.diffMs[i])}</span>
               </p>
             </div>
-            <div className="text-right flex-shrink-0">
-              <p className="text-white font-bold">+{result.points[i]} pts</p>
-              <p className="text-zinc-400 text-xs">{scores[i]} total</p>
+            <div style={{ textAlign: 'right', flexShrink: 0 }}>
+              <p style={{ color: '#FFF', fontWeight: 900, margin: '0 0 2px', fontSize: 15 }}>+{result.points[i]} pts</p>
+              <p style={{ color: 'rgba(255,255,255,0.5)', fontSize: 12, margin: 0 }}>{scores[i]} total</p>
             </div>
           </div>
         ))}
 
-        <Button
-          className="w-full mt-2 py-6 bg-white/10 hover:bg-white/20 text-white border-0 font-bold text-base rounded-2xl"
+        <button
           onPointerDown={onNext}
+          style={{
+            width: '100%', padding: '18px',
+            borderRadius: 20, border: 'none', marginTop: 4,
+            background: 'linear-gradient(90deg, #FF6035, #FF8C60)',
+            color: '#FFF', fontSize: 16, fontWeight: 900,
+            fontFamily: "'Nunito', sans-serif",
+            boxShadow: '0 8px 28px rgba(255,96,53,0.45)',
+            cursor: 'pointer',
+          }}
         >
           {isLast ? 'Voir les résultats →' : 'Round suivant →'}
-        </Button>
+        </button>
       </div>
     </div>
   )

@@ -1,5 +1,5 @@
 import type { Metadata, Viewport } from 'next'
-import { Inter } from 'next/font/google'
+import { Nunito } from 'next/font/google'
 import './globals.css'
 
 export const viewport: Viewport = {
@@ -8,7 +8,10 @@ export const viewport: Viewport = {
   maximumScale: 1,
 }
 
-const inter = Inter({ subsets: ['latin'] })
+const nunito = Nunito({
+  subsets: ['latin'],
+  weight: ['400', '600', '700', '800', '900'],
+})
 
 export const metadata: Metadata = {
   title: 'Kclo Games',
@@ -22,7 +25,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="fr">
-      <body className={inter.className}>{children}</body>
+      <body className={nunito.className}>{children}</body>
     </html>
   )
 }

@@ -254,3 +254,74 @@ src/
 - Fix ESM : `__dirname` non disponible → `path.dirname(fileURLToPath(import.meta.url))`
 - Fix tsconfig : `scripts/` ajouté à `exclude` pour éviter que Next.js compile les seeds
 - Fix action route : `body.type === 'pass'` → `result: 'passed'` (mismatch entre type action et type historique)
+
+<!-- GIT SNAPSHOT — Généré automatiquement le Thursday 30 April 2026 — 00:46 -->
+<!-- Ne pas modifier à la main — sera écrasé au prochain démarrage -->
+
+## 📸 Snapshot Git — Thursday 30 April 2026 — 00:46
+
+### Branche active
+```
+main
+```
+
+### 5 derniers commits
+```
+65bc0d2 2026-04-26 docs: rewrite DESIGN_SYSTEM.md with validated DA values
+f8672c1 2026-04-26 feat: add DESIGN_SYSTEM.md + fix UI inconsistencies
+fe3ec94 2026-04-26 docs: rename Image Quiz → ELDU across all documentation and context
+99f42a4 2026-04-26 feat: rename Image Quiz → ELDU, add flags + rappers_fr themes
+8a1a7e0 2026-04-26 fix: replace __dirname with import.meta.url in seed script (ESM compat)
+```
+
+### Fichiers modifiés (non commités)
+```
+ M agents/GAME_CREATOR.md
+ M claude.md
+ M package.json
+ M src/app/games/toktik/page.tsx
+ M src/app/globals.css
+ M src/app/layout.tsx
+ M src/app/page.tsx
+ M src/app/rooms/join/page.tsx
+ M src/app/rooms/new/page.tsx
+ M src/components/platform/RoomLobby.tsx
+ M src/lib/games/registry.ts
+?? .claude/
+?? agents/DESIGN_AGENT.md
+?? agents/PIPELINE.md
+?? context/.git_snapshot.md
+?? docs/games/isam.md
+?? docs/games/isam_design.md
+?? scripts/pipeline.ts
+?? src/app/api/rooms/[code]/isam/
+?? src/components/games/isam/
+?? src/lib/games/isam/
+?? src/lib/games/theme.ts
+?? src/lib/utils/
+?? src/types/games/isam.ts
+?? supabase/migrations/20260501000000_isam.sql
+?? supabase/migrations/20260502000000_isam_questions_v2.sql
+```
+
+### Fichiers modifiés depuis le dernier commit
+```
+agents/GAME_CREATOR.md
+claude.md
+package.json
+src/app/games/toktik/page.tsx
+src/app/globals.css
+src/app/layout.tsx
+src/app/page.tsx
+src/app/rooms/join/page.tsx
+src/app/rooms/new/page.tsx
+src/components/platform/RoomLobby.tsx
+src/lib/games/registry.ts
+```
+
+### Stats du repo
+```
+Nombre total de commits : 10
+Dernier commit          : 3 days ago
+Auteur dernier commit   : Kclo
+```

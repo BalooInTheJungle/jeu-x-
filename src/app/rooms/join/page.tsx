@@ -43,44 +43,87 @@ export default function JoinRoomPage() {
   }
 
   return (
-    <main className="flex min-h-screen flex-col items-center justify-center bg-zinc-950 p-8 text-white">
-      <div className="w-full max-w-sm">
-        <h1 className="text-3xl font-bold mb-2">Rejoindre une partie</h1>
-        <p className="text-slate-400 mb-8">Demande le code à ton ami qui a créé la room.</p>
+    <main style={{
+      minHeight: '100vh', background: '#FAFAF8',
+      fontFamily: "'Nunito', sans-serif",
+      display: 'flex', flexDirection: 'column',
+      alignItems: 'center', justifyContent: 'center',
+      padding: 32,
+    }}>
+      <div style={{ width: '100%', maxWidth: 400 }}>
+        <h1 style={{ fontSize: 28, fontWeight: 900, color: '#1A1A2E', margin: '0 0 8px' }}>
+          Rejoindre une partie
+        </h1>
+        <p style={{ fontSize: 14, fontWeight: 600, color: '#999', marginBottom: 32 }}>
+          Demande le code à ton ami qui a créé la room.
+        </p>
 
-        <form onSubmit={handleSubmit} className="flex flex-col gap-4">
+        <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
           <div>
-            <label className="block text-sm text-slate-400 mb-1">Code de la room</label>
+            <label style={{ display: 'block', fontSize: 13, fontWeight: 800, color: '#1A1A2E', marginBottom: 6 }}>
+              Code de la room
+            </label>
             <input
               type="text"
               value={code}
               onChange={(e) => setCode(e.target.value.toUpperCase())}
-              placeholder="Ex : XKZP"
+              placeholder="XKZP"
               maxLength={4}
-              className="w-full rounded-xl bg-zinc-800 border border-zinc-700 px-4 py-3 text-white placeholder-slate-500 uppercase tracking-widest text-center text-xl focus:outline-none focus:ring-2 focus:ring-indigo-500"
+              style={{
+                width: '100%', boxSizing: 'border-box',
+                borderRadius: 16, border: '2px solid #E8E8E8',
+                background: '#FFF',
+                padding: '14px 20px',
+                fontSize: 28, fontWeight: 900, color: '#1A1A2E',
+                textAlign: 'center', letterSpacing: 8,
+                textTransform: 'uppercase',
+                fontFamily: "'Nunito', sans-serif",
+                outline: 'none',
+              }}
             />
           </div>
 
           <div>
-            <label className="block text-sm text-slate-400 mb-1">Ton pseudo</label>
+            <label style={{ display: 'block', fontSize: 13, fontWeight: 800, color: '#1A1A2E', marginBottom: 6 }}>
+              Ton pseudo
+            </label>
             <input
               type="text"
               value={username}
               onChange={(e) => setUsername(e.target.value)}
               placeholder="Ex : Luigi"
               maxLength={20}
-              className="w-full rounded-xl bg-zinc-800 border border-zinc-700 px-4 py-3 text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+              style={{
+                width: '100%', boxSizing: 'border-box',
+                borderRadius: 16, border: '2px solid #E8E8E8',
+                background: '#FFF',
+                padding: '14px 20px',
+                fontSize: 16, fontWeight: 700, color: '#1A1A2E',
+                fontFamily: "'Nunito', sans-serif",
+                outline: 'none',
+              }}
             />
           </div>
 
-          {error && <p className="text-red-400 text-sm">{error}</p>}
+          {error && (
+            <p style={{ fontSize: 13, fontWeight: 700, color: '#E53935', margin: 0 }}>{error}</p>
+          )}
 
           <button
             type="submit"
             disabled={loading || !code.trim() || !username.trim()}
-            className="rounded-xl bg-indigo-600 px-6 py-3 font-semibold hover:bg-indigo-500 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+            style={{
+              width: '100%', padding: 18,
+              borderRadius: 20, border: 'none',
+              background: 'linear-gradient(90deg, #FF6035, #FF8C60)',
+              color: '#FFF', fontSize: 17, fontWeight: 900,
+              fontFamily: "'Nunito', sans-serif",
+              boxShadow: '0 8px 28px rgba(255,96,53,0.45)',
+              cursor: 'pointer',
+              opacity: (loading || !code.trim() || !username.trim()) ? 0.5 : 1,
+            }}
           >
-            {loading ? 'Connexion...' : 'Rejoindre'}
+            {loading ? 'Connexion...' : '🚀 Rejoindre'}
           </button>
         </form>
       </div>

@@ -54,6 +54,7 @@ kclo games/
 │   ├── PROJECT.md             ← Vision complète du projet
 │   ├── ARCHITECTURE.md        ← Schéma BDD, flux de données, API
 │   ├── GAME_CONTRACT.md       ← Interface TypeScript que tout jeu doit respecter
+│   ├── DESIGN_SYSTEM.md       ← Palette, composants, layouts — référence UI obligatoire
 │   ├── ROADMAP.md             ← V1 / V2 / V3
 │   ├── DECISIONS.md           ← Pourquoi ces choix techniques
 │   └── games/
@@ -89,6 +90,7 @@ kclo games/
 ### Ce que tu ne fais JAMAIS
 - Modifier les fichiers dans `src/lib/platform/` sans en parler avant — c'est le cœur de la plateforme
 - Créer du code qui contourne l'interface `GameModule` définie dans `docs/GAME_CONTRACT.md`
+- Créer une UI sans lire `docs/DESIGN_SYSTEM.md` en premier — les couleurs, radius et composants sont standardisés
 - Utiliser `any` en TypeScript
 - Laisser des `console.log` de debug dans le code final
 - Faire des choix de stack différents de ce qui est défini ici sans en discuter d'abord
@@ -99,10 +101,11 @@ kclo games/
 ## Ordre de Lecture au Démarrage d'une Session
 
 ```
-1. CLAUDE.md          (ce fichier)
-2. context/PRIMER.md  (où on en est)
-3. context/HINDSIGHT.md (comment ce dev fonctionne)
-4. docs/PROJECT.md    (si besoin de contexte produit approfondi)
+1. CLAUDE.md                (ce fichier)
+2. context/PRIMER.md        (où on en est)
+3. context/HINDSIGHT.md     (comment ce dev fonctionne)
+4. docs/DESIGN_SYSTEM.md    (obligatoire si tu touches à l'UI)
+5. docs/PROJECT.md          (si besoin de contexte produit approfondi)
 ```
 
 Tu n'as pas besoin de lire tous les fichiers `docs/` à chaque session.

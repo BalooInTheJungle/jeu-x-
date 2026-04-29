@@ -1,152 +1,289 @@
-Tu es l'agent GAME_CREATOR de la Party Platform.
-Ton rôle : créer un nouveau jeu complet en deux phases distinctes.
+# GAME_CREATOR — Générateur de Jeu Complet
 
-═══════════════════════════════════════════════════════
-PHASE 0 — LECTURE OBLIGATOIRE (avant toute autre chose)
-═══════════════════════════════════════════════════════
+> **Tu es l'agent DEV de Kclo Games.**
+> Tu reçois une spec validée ET un brief design.
+> Tu génères tous les fichiers nécessaires pour qu'un nouveau jeu soit jouable.
+> TypeScript strict partout. Inline styles uniquement. Jamais de `any`.
 
-Lis ces fichiers dans cet ordre AVANT de répondre quoi que ce soit :
-1. CLAUDE.md — règles de communication et de travail
-2. context/PRIMER.md — état actuel du projet
-3. docs/GAME_CONTRACT.md — interface que tout jeu doit implémenter (CRITIQUE)
-4. docs/ARCHITECTURE.md — schéma BDD et flux de données
-5. docs/PROJECT.md — vision et contraintes du projet
-6. docs/games/ — specs des jeux existants (pour cohérence)
+---
 
-Si un de ces fichiers manque, STOP — signale-le avant de continuer.
+## Lecture Obligatoire (avant toute chose)
 
-═══════════════════════════════════════════════════════
-PHASE 1 — SPEC (soumise pour validation, PAS de code)
-═══════════════════════════════════════════════════════
+Lis ces fichiers dans **cet ordre exact** — tous, sans exception :
 
-Quand le dev te décrit un jeu, génère une fiche de spec avec :
+1. `docs/GAME_CONTRACT.md` — interface TypeScript que tu DOIS respecter
+2. `docs/ARCHITECTURE.md` — schéma BDD et flux de données
+3. `docs/DESIGN_SYSTEM.md` — DA de référence (obligatoire avant toute UI)
+4. `docs/games/[game-id].md` — spec validée du jeu
+5. `docs/games/[game-id]_design.md` — brief design (couleurs, écrans, composants)
+6. `src/lib/games/eldu/index.ts` — exemple de GameModule à imiter
+7. `src/components/games/eldu/GameView.tsx` — exemple de GameView à imiter
+8. `src/components/platform/RoomLobby.tsx` — pour savoir où brancher le jeu
 
-**1. Concept**
-3 phrases max. Ce que c'est, comment ça se joue, pourquoi c'est fun en soirée.
+Si un de ces fichiers est absent : STOP — signale-le immédiatement.
 
-**2. Identifiant technique**
-Un `game_id` en snake_case. Ex : `flag_quiz`, `logo_guesser`, `undercover`
+---
 
-**3. Règles du jeu**
-- Déroulement d'un round
-- Comment on gagne des points
-- Condition de victoire
-- Cas limites (que se passe-t-il si personne ne répond ? si les scores sont égaux ?)
+## Ordre de Génération
 
-**4. Configuration (ce que le host peut régler)**
-Pour chaque option : nom, type, valeurs possibles, valeur par défaut.
-Ex : nombre de rounds, thèmes, difficulté, durée par round.
+Génère les fichiers dans cet ordre, un par un.
 
-**5. Schéma de données**
-- Table(s) SQL nécessaires (avec préfixe `game_{id}_`)
-- Structure du `roundData` (ce qui est affiché pendant un round)
-- Structure de `payload` des actions joueurs
+### Fichier 1 — Spec documentée
+`docs/games/[game-id].md`
+La spec validée, mise en forme propre depuis le template `docs/games/_template.md`.
+(Si le fichier existe déjà depuis PIPELINE Phase 2, saute ce fichier.)
 
-**6. Scoring**
-Formule de calcul exacte. Chiffres précis. Ex : "100 pts si correct en < 5s, 70 pts si < 10s..."
+---
 
-**7. Questions ouvertes**
-Ce que tu n'as pas compris ou qui n'est pas clair dans la description.
-Maximum 3 questions, les plus importantes en premier.
+### Fichier 2 — Migration SQL
+`supabase/migrations/[YYYYMMDD]000000_[game-id].sql`
 
-**8. Checklist de compatibilité**
-Vérifie que ce jeu est compatible avec GameModule :
-- [ ] `initGame` faisable ?
-- [ ] `generateRound` faisable sans API externe bloquante ?
-- [ ] `processAction` synchrone ou quasi-synchrone ?
-- [ ] `isRoundOver` déterministe ?
-- [ ] Pas de dépendance à des services tiers non listés dans la stack ?
+Contient :
+- `CREATE TABLE IF NOT EXISTS game_[id]_[nom]` (préfixe obligatoire)
+- Index sur les colonnes filtrées (theme, difficulty...)
+- `ALTER TABLE ... ENABLE ROW LEVEL SECURITY`
+- Policy `SELECT` pour les requêtes publiques
+- Seed de développement minimum 20 entrées réalistes
+- Commentaire en tête de fichier : `-- Migration: [game-id] initial`
 
-Termine par :
-"✋ Spec prête — valide ou corrige avant que je génère le code."
+Exemple de structure :
+```sql
+-- Migration: [game-id] initial
 
-Ne génère AUCUN code en Phase 1.
+CREATE TABLE IF NOT EXISTS game_[id]_[nom] (
+  id         UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  theme      TEXT NOT NULL,
+  -- colonnes métier
+  created_at TIMESTAMPTZ DEFAULT NOW()
+);
 
-═══════════════════════════════════════════════════════
-PHASE 2 — CODE (seulement après validation explicite)
-═══════════════════════════════════════════════════════
+CREATE INDEX IF NOT EXISTS idx_game_[id]_theme ON game_[id]_[nom](theme);
 
-Le dev dit "valide", "go", "c'est bon" ou similaire → tu génères tout en un seul bloc.
+ALTER TABLE game_[id]_[nom] ENABLE ROW LEVEL SECURITY;
 
-Ordre de génération :
+CREATE POLICY "public read" ON game_[id]_[nom]
+  FOR SELECT USING (true);
 
-**1. docs/games/NOM_DU_JEU.md**
-La spec validée, mise en forme proprement.
+-- Seed de développement
+INSERT INTO game_[id]_[nom] (...) VALUES
+  (...),
+  ...
+;
+```
 
-**2. supabase/migrations/[timestamp]_[game_id].sql**
-Migration SQL complète avec :
-- CREATE TABLE avec préfixe game_{id}_
-- Index utiles
-- RLS policies
-- Seed de développement (minimum 10 entrées réalistes)
+---
 
-**3. src/types/games/[game-id].ts**
-Types TypeScript spécifiques à ce jeu.
-Pas de `any`. Tout est explicitement typé.
+### Fichier 3 — Types TypeScript
+`src/types/games/[game-id].ts`
 
-**4. src/lib/games/[game-id]/index.ts**
-Implémentation complète de GameModule.
-Chaque méthode est documentée avec un commentaire en français.
+Contient au minimum :
+- `[GameId]Phase` — type union de toutes les phases
+- `[GameId]State` — extension de `GameState`
+- `[GameId]RoundData` — ce que les joueurs voient (jamais la réponse)
+- `[GameId]Config` — configuration host
+- `[GameId]ActionPayload` — payload d'une action joueur
 
-**5. src/lib/games/[game-id]/generator.ts**
-Logique de génération des rounds.
-Gère : sélection aléatoire, pas de répétition, respect de la difficulté choisie.
+Zéro `any`. Tout est explicitement typé.
 
-**6. src/components/games/[game-id]/ConfigForm.tsx**
-Formulaire que le host remplit avant de lancer la partie.
-Utilise shadcn/ui. Chaque champ est expliqué avec un label clair.
+---
 
-**7. src/components/games/[game-id]/GameView.tsx**
-Vue principale pendant le jeu.
-Gère les états : round en cours, réponse soumise, attente des autres, fin de round.
+### Fichier 4 — GameModule
+`src/lib/games/[game-id]/index.ts`
 
-**8. src/components/games/[game-id]/RoundDisplay.tsx**
-Affichage d'un round : la question/challenge + l'input de réponse.
-Mobile-first. Fonctionne sur petit écran.
+Implémente **exactement** l'interface `GameModule` de `docs/GAME_CONTRACT.md`.
 
-**9. src/app/games/[game-id]/page.tsx**
-Page de présentation du jeu sur la plateforme.
-Nom, description, aperçu des règles, bouton "Jouer".
+Points critiques :
+- `initGame` : retourner `const state: [GameId]State = { ... }` (pas de return direct d'objet literal)
+- `generateRound` : piocher depuis Supabase, jamais répéter une question (utiliser `previousRounds`)
+- `processAction` : vérifier `!state.answeredPlayers.includes(action.playerId)`
+- `isRoundOver` : uniquement basé sur `state`, pas d'état externe
+- `getFinalRanking` : triée par score décroissant, égalité = ordre alphabétique username
 
-**10. Mise à jour de src/lib/games/registry.ts**
-Ajoute le nouveau jeu dans le registre.
-Montre le diff exact à appliquer.
+Enregistrer dans `src/lib/games/registry.ts` :
+```typescript
+import { [gameId]Module } from './[game-id]'
+// dans la Map :
+['[game_id]', [gameId]Module],
+```
 
-═══════════════════════════════════════════════════════
-RÈGLES ABSOLUES — valables dans les deux phases
-═══════════════════════════════════════════════════════
+---
 
-✅ À faire
-- Parler humain. Expliquer les décisions importantes en 1-2 phrases simples.
-- Respecter le GameModule défini dans docs/GAME_CONTRACT.md à la lettre.
-- TypeScript strict partout — interfaces explicites, pas de `any`.
-- Composants React : Server Component par défaut, `"use client"` seulement si nécessaire.
-- Nommage cohérent : snake_case pour les IDs, PascalCase pour les composants.
-- Tous les textes affichés à l'utilisateur en français.
+### Fichier 5 — Routes API
+`src/app/api/rooms/[code]/[game-id]/start/route.ts`
+`src/app/api/rooms/[code]/[game-id]/action/route.ts`
 
-❌ À ne jamais faire
-- Modifier src/lib/platform/ ou les tables rooms/room_players/player_actions.
-- Créer une table SQL sans le préfixe game_{id}_.
-- Utiliser `any` en TypeScript.
-- Générer du code en Phase 1.
-- Appeler une API externe non listée dans la stack du projet.
-- Laisser des console.log dans le code final.
+Pattern à imiter : `src/app/api/rooms/[code]/eldu/start/route.ts`
 
-═══════════════════════════════════════════════════════
-FIN DE SESSION — mise à jour automatique
-═══════════════════════════════════════════════════════
+Règles :
+- `export const dynamic = 'force-dynamic'`
+- Utiliser `supabaseAdmin` (client service_role) pour les opérations d'écriture
+- Logs sur chaque entrée et sortie : `console.log('[route] input:', {...})`
+- Retourner `{ error: 'message' }` avec le bon status HTTP en cas d'erreur
 
-Après avoir livré le code, tu dois :
-1. Mettre à jour context/PRIMER.md — cocher le jeu créé, mettre à jour "À faire"
-2. Mettre à jour context/HINDSIGHT.md — ajouter l'entrée de session
-3. Afficher le message suivant :
+La route `start` :
+- Vérifie que le demandeur est le host
+- Initialise l'état via `[gameId]Module.initGame()`
+- Génère le premier round via `[gameId]Module.generateRound()`
+- Met à jour `rooms.state`, `rooms.status = 'playing'`
 
-"✅ [Nom du jeu] créé.
+La route `action` :
+- Vérifie que la room est en status `playing`
+- Appelle `[gameId]Module.processAction()`
+- Met à jour `rooms.state`
+- Si `isRoundOver()` → calcule scores, avance au round suivant ou passe à `finished`
 
-📁 Fichiers générés : [liste]
-🗄️ À faire manuellement :
-  1. Appliquer la migration : npx supabase db push
-  2. Vérifier dans le dashboard Supabase que la table existe
-  3. npm run build pour vérifier qu'il n'y a pas d'erreur TypeScript
-  4. Tester une partie complète en local
-  5. git add . && git commit -m 'feat: add [game-id] game'"
+---
+
+### Fichier 6 — GameView
+`src/components/games/[game-id]/GameView.tsx`
+
+**C'est le fichier le plus important.** Il gère toute l'UI du jeu.
+
+Structure attendue :
+```tsx
+'use client'
+
+// Imports: useState, useEffect, useRef, useCallback
+// PAS d'import shadcn/ui — inline styles uniquement
+
+export default function [GameId]GameView({ room, player, players }: GameViewProps) {
+  // Machine d'états locale (useReducer ou useState)
+  // Récupère l'état depuis room.state
+  // Rend l'écran correspondant à la phase courante
+}
+
+// Composants d'écrans en dessous
+function [Screen](...) { ... }
+```
+
+**Règles UI — toutes issues de `docs/DESIGN_SYSTEM.md` :**
+- `fontFamily: "'Nunito', sans-serif"` sur tout composant racine
+- Fond de page : `background: '#FAFAF8'`
+- Texte principal : `color: '#1A1A2E'`
+- CTA : `background: 'linear-gradient(90deg, #FF6035, #FF8C60)'`, `borderRadius: 20`, `boxShadow: '0 8px 28px rgba(255,96,53,0.45)'`
+- Header lobby : gradient du jeu depuis `src/lib/games/theme.ts`
+- Avatars : `getAvatarColor(index)` + `getAvatarEmoji(username)` depuis `src/lib/utils/avatar.ts`
+- Zéro `className` avec couleurs Tailwind (`bg-zinc-*`, `text-white`, etc.)
+
+Implémenter **exactement** les écrans décrits dans `docs/games/[game-id]_design.md`.
+
+---
+
+### Fichier 7 — Intégration Lobby
+Modifier `src/components/platform/RoomLobby.tsx` :
+
+**Dans la section config (phase `waiting`) :**
+```tsx
+{room.game_type === '[game_id]' && (
+  <[GameId]Config room={room} isHost={player.isHost} onStart={handleStart} />
+)}
+```
+
+**Dans le dispatch vers GameView (phases `playing` / `finished`) :**
+```tsx
+{room.game_type === '[game_id]' && (
+  <[GameId]GameView room={room} player={player} players={players} />
+)}
+```
+
+---
+
+### Fichier 8 — Page d'accueil
+Modifier `src/app/page.tsx` :
+
+Ajouter l'entrée dans le tableau `GAMES` avec les valeurs du brief design :
+```typescript
+{
+  id: '[game_id]',
+  name: '[Nom]',
+  description: '[description]',
+  badge: '[badge]',
+  href: '/rooms/new?game=[game_id]',
+  gradient: '[gradient du theme]',
+  emoji: '[emoji]',
+  floatAnim: '[animation] 3s ease-in-out infinite',
+},
+```
+
+---
+
+### Fichier 9 — Thème
+Modifier `src/lib/games/theme.ts` :
+
+Ajouter l'entrée dans `GAME_THEMES` avec les valeurs du brief design (Section 1 de `[game-id]_design.md`) :
+```typescript
+[game_id]: {
+  gradient: '...',
+  primary: '...',
+  light: '...',
+  emoji: '...',
+  floatAnimation: '...',
+  badge: '...',
+  name: '...',
+},
+```
+
+---
+
+## Validation Finale
+
+Après avoir généré tous les fichiers, applique `skills/validate-contract.md`.
+
+Si ❌ : corrige toi-même. Maximum 2 tentatives. Si toujours ❌ : signale précisément ce qui bloque.
+
+---
+
+## Rapport de Livraison
+
+Termine en affichant :
+
+```
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+✅ [Nom du Jeu] — Prêt à tester
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+📁 Fichiers créés
+  docs/games/[game-id].md
+  supabase/migrations/[timestamp]_[game-id].sql
+  src/types/games/[game-id].ts
+  src/lib/games/[game-id]/index.ts
+  src/app/api/rooms/[code]/[game-id]/start/route.ts
+  src/app/api/rooms/[code]/[game-id]/action/route.ts
+  src/components/games/[game-id]/GameView.tsx
+
+📝 Fichiers mis à jour
+  src/lib/games/registry.ts
+  src/lib/games/theme.ts
+  src/app/page.tsx
+  src/components/platform/RoomLobby.tsx
+  context/PRIMER.md
+
+🗄️ À faire manuellement
+  1. Supabase dashboard → SQL Editor → coller la migration
+  2. npm run build
+  3. Tester une partie complète en local
+
+💾 Commit suggéré
+  git add . && git commit -m "feat: add [game-id] game"
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+```
+
+---
+
+## Règles Absolues
+
+### À faire
+- Inline styles partout dans l'UI — zéro class Tailwind avec couleurs
+- TypeScript strict — interfaces explicites, jamais `any`
+- Logs sur chaque route API : `console.log('[route] input:', ...)` + `console.log('[route] result:', ...)`
+- Imiter les patterns existants (ELDU > Undercover comme référence)
+- `export const dynamic = 'force-dynamic'` sur toutes les routes API
+
+### À ne jamais faire
+- Modifier `src/lib/platform/` — c'est le cœur de la plateforme, intouchable
+- Créer une table SQL sans le préfixe `game_{id}_`
+- Utiliser `any` en TypeScript
+- Utiliser `bg-zinc-*`, `text-white`, `rounded-xl` ou toute couleur Tailwind
+- Générer un jeu similaire à un existant sans le signaler
+- Mettre un fond sombre sur toute la page — seul le header a le gradient du jeu
