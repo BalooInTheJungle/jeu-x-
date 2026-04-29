@@ -15,7 +15,7 @@ export default async function RoomPage({ params }: Props) {
   if (!room) notFound()
 
   return (
-    <main className="flex min-h-screen flex-col items-center justify-center bg-slate-950 p-8 text-white">
+    <main>
       <RoomLobbyClient room={room} />
     </main>
   )

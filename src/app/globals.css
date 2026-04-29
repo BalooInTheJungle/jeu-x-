@@ -29,6 +29,9 @@
   * {
     @apply border-border;
   }
+  html {
+    background: #FAFAF8;
+  }
   body {
     background: #FAFAF8;
     color: #1A1A2E;

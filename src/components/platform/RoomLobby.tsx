@@ -16,10 +16,11 @@ interface Props {
 
 const S: Record<string, React.CSSProperties> = {
   page: {
-    minHeight: '100vh',
+    minHeight: '100dvh',
     background: '#FAFAF8',
     fontFamily: "'Nunito', sans-serif",
     color: '#1A1A2E',
+    paddingBottom: 'env(safe-area-inset-bottom, 0px)',
   },
   btn: {
     width: '100%', padding: 18,
@@ -130,6 +131,7 @@ export default function RoomLobby({ initialRoom, currentPlayerId }: Props) {
       <div style={{
         background: theme.gradient,
         padding: '28px 20px 32px',
+        paddingTop: 'calc(env(safe-area-inset-top, 0px) + 28px)',
         position: 'relative', overflow: 'hidden',
       }}>
         <div style={{ position:'absolute', top:-30, right:-30, width:130, height:130, borderRadius:'50%', background:'rgba(255,255,255,0.1)' }}/>
